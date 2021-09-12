@@ -16,12 +16,12 @@
     (let [title (-> (.getName file)
                     (replace ".md" "")
                     (replace "-" " "))]
-      (spit (replace (str "./generated/" (.getName file)) ".md" ".html")
+      (spit (replace (str "./docs/" (.getName file)) ".md" ".html")
             (->
               (replace quickstart "{{& body }}"
                        (markdown/markdown (.getPath file) :html))
               (replace "{{& title }}" title))))
-    (spit "./generated/index.html"
+    (spit "./docs/index.html"
           (replace index-quickstart "{{& posts }}"
                    (->> files
                         (map (fn [file]
