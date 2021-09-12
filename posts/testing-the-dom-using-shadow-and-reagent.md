@@ -1,7 +1,7 @@
 # Testing the DOM using shadow-cljs and Reagent
 I've been recently trying to build [brundij](https://github.com/arthurbarroso/brundij), an open-source tool for squad health checks. I ended up deciding on using Clojure and Clojurescript to build it (I've been learning clojure for a few months already but feel like a complete beginner, so I thought building something might help me grasp some stuff). I also decided to use `shadow-cljs` to set up my project.
 
-Everything was going pretty smoothly until I needed to run DOM tests, which seemed like a big mistery to me -it seemed like most CLJS developers were only using Cypress and the [only post I could find talking about `react-testing-library` in clojurescript](https://francisvitullo.medium.com/a-way-of-testing-views-in-clojurescript-apps-98aaf57c5c2a) was two years old. In this post, I am going to try to help Clojurescript beginners, like me, run DOM tests on their shadow-cljs + reagent applications.
+Everything was going pretty smoothly until I needed to run DOM tests, which seemed like a big mistery to me -it seemed like most CLJS developers were only using Cypress and the [only post I could find talking about `react-testing-library` in clojurescript](https://francisvitullo.medium.com/a-way-of-testing-views-in-clojurescript-apps-98aaf57c5c2a) was two years old. All of this led me into creating this post, in which, I am going to try to help Clojurescript beginners, like me, run DOM tests on their shadow-cljs + reagent applications.
 
 ### First try
 
