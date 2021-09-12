@@ -9,8 +9,8 @@
 
 (let [posts-dir "./posts"
       dir (io/file posts-dir)
-      quickstart (slurp "quickstart.html")
-      index-quickstart (slurp "index-quickstart.html")
+      quickstart (slurp "./templates/quickstart.html")
+      index-quickstart (slurp "./templates/index-quickstart.html")
       files (.listFiles dir)]
   (doseq [file files]
     (let [title (-> (.getName file)
