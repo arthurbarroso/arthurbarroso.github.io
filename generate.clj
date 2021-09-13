@@ -21,7 +21,7 @@
               (replace quickstart "{{& body }}"
                        (markdown/markdown (.getPath file) :html))
               (replace "{{& title }}" title))))
-    (spit "./index.html"
+    (spit "./docs/index.html"
           (replace index-quickstart "{{& posts }}"
                    (->> files
                         (map (fn [file]
@@ -29,7 +29,7 @@
                                     "<a href="
                                     (-> (.getPath file)
                                         (replace ".md" ".html")
-                                        (replace "posts" "docs"))
+                                        (replace "/posts" ""))
                                     ">"
                                     (-> (.getName file)
                                         (replace ".md" "")
