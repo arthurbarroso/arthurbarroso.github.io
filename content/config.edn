@@ -24,7 +24,7 @@
  :disqus-shortname             ""
  :ignored-files                [#"\.#.*" #".*\.swp$"]
  :previews?                    true 
- :clean-urls                   :dirty
+ :clean-urls                   :trailing-slash ;:dirty
  :collapse-subdirs?            false
  :hide-future-posts?           true
  :klipse                       {}

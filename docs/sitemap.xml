@@ -2,7 +2,7 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url>
 <loc>
-http://arthurbarroso.github.ioArthur Barroso.html
+http://arthurbarroso.github.ioshadow-cljs/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -10,7 +10,7 @@ http://arthurbarroso.github.ioArthur Barroso.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioshadow-cljs.html
+http://arthurbarroso.github.ioabout/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -18,7 +18,7 @@ http://arthurbarroso.github.ioshadow-cljs.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iocollage.html
+http://arthurbarroso.github.ioarchives/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -26,7 +26,7 @@ http://arthurbarroso.github.iocollage.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iotesting-the-dom-using-shadow-and-reagent.html
+http://arthurbarroso.github.iotags/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -34,7 +34,7 @@ http://arthurbarroso.github.iotesting-the-dom-using-shadow-and-reagent.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioarchives.html
+http://arthurbarroso.github.ioArthur Barroso/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -42,7 +42,15 @@ http://arthurbarroso.github.ioarchives.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iotests.html
+http://arthurbarroso.github.iocollage/index.html
+</loc>
+<lastmod>
+2021-09-27
+</lastmod>
+</url>
+<url>
+<loc>
+http://arthurbarroso.github.iotests/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -66,7 +74,7 @@ http://arthurbarroso.github.io404.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iotags.html
+http://arthurbarroso.github.iodom/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -74,7 +82,7 @@ http://arthurbarroso.github.iotags.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iodom.html
+http://arthurbarroso.github.ioreagent/index.html
 </loc>
 <lastmod>
 2021-09-27
@@ -82,15 +90,7 @@ http://arthurbarroso.github.iodom.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioreagent.html
-</loc>
-<lastmod>
-2021-09-27
-</lastmod>
-</url>
-<url>
-<loc>
-http://arthurbarroso.github.ioabout.html
+http://arthurbarroso.github.iotesting-the-dom-using-shadow-and-reagent/index.html
 </loc>
 <lastmod>
 2021-09-27

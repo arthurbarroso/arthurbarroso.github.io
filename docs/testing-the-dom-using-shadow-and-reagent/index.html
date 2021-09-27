@@ -10,15 +10,15 @@
 
 <meta property="og:description" content="I&#39;ve been recently trying to build brundij, an open-source tool for squad health checks. I ended up deciding on using Clojure and Clojurescript to build it (I&#39;ve been learning clojure for a few months already but feel like a complete beginner, so I thought building something might help me grasp some stuff). I also decided to use shadow-cljs to set up my project.Everything was going pretty smoothly until I needed to run DOM tests, which seemed like a big mistery to me -it seemed like most CLJS developers were only using Cypress and the only post I could find talking about react-testing-library in clojurescript was two years old. All of this led me into creating this post, in which, I am going to try to help Clojurescript beginners, like me, run DOM tests on their shadow-cljs + reagent applications.">
 
-<meta property="og:url" content="http://arthurbarroso.github.io/testing-the-dom-using-shadow-and-reagent.html" />
+<meta property="og:url" content="http://arthurbarroso.github.io/testing-the-dom-using-shadow-and-reagent/" />
 <meta property="og:title" content="Testing the DOM using shadow-cljs and Reagent" />
 <meta property="og:type" content="article" />
 
-    <link rel="canonical" href="http://arthurbarroso.github.io/testing-the-dom-using-shadow-and-reagent.html">
+    <link rel="canonical" href="http://arthurbarroso.github.io/testing-the-dom-using-shadow-and-reagent/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/base16/solarized-light.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
     <link href="/css/screen.css" rel="stylesheet" type="text/css" />
@@ -29,19 +29,19 @@
 <nav class="navbar">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-title" href="/index.html">((arthur barroso))</a>
+            <a class="navbar-title" href="/">((arthur barroso))</a>
             <ul class="navbar-list">
               <li
-              ><a href="/archives.html">Archives</a></li>
+              ><a href="/archives/">Archives</a></li>
               
               <li
               >
-              <a href="/collage.html">collage</a>
+              <a href="/collage/">collage</a>
               </li>
               
               <li
               >
-              <a href="/about.html">about</a>
+              <a href="/about/">about</a>
               </li>
               
               <li><a href="/feed.xml">RSS</a></li>
@@ -55,7 +55,7 @@
 
 
     <div class="row">
-        <div class="col-lg-9">
+        <div>
             <div id="content">
                 
 <div id="post">
@@ -157,7 +157,8 @@
       (let [app-element (.getElementById js/document "app")
             button (-&gt; (.getElementsByTagName app-element "button")
                        (first))] ;; gets the button element
-        (.click dom-test-utils/Simulate button) ;; react-dom/test-utils simulates a user click
+        (.click dom-test-utils/Simulate button) 
+        ;; react-dom/test-utils simulates a user click
         (is (= 2 @ra)))))) ;; ra's value should've been incremented
 </code></pre><p>This example uses a reagent atom to check whether on-click has been called. This could also be done using re-frame, for example.</p><h3 id="cleaning-up-the-dom-in-between-tests">Cleaning up the DOM in between tests</h3><p>Let's say we want to clean up the DOM between each <code>deftest</code>. This is achievable, but not with the code we currently have. Since we're using <code>reagent-dom/render</code> to render stuff, we cant simply delete our <code>app</code>'s div children -our components aren't being rendered as children, the whole <code>app</code> div is becoming our components. We can fix this.</p><p>Our first step will be defining our <code>append-container</code> function. This function will take a target element and an <code>id</code> as arguments. It will then create a div with that <code>id</code> as the <code>target</code>'s children. We will then define our <code>dom-cleanup!</code> fixture, which will use's <code>clojure.browser.dom</code> <code>remove-children</code> function, which simply removes a DOM element's children.</p><pre><code class="clojure">(ns app.button-test
   (:require [app.components.button :refer [button]]
@@ -241,13 +242,13 @@ module.exports = function (config) {
 <div id="post-tags">
     <b>Tags: </b>
     
-    <a href="/dom.html">dom</a>
+    <a href="/dom/">dom</a>
     
-    <a href="/reagent.html">reagent</a>
+    <a href="/reagent/">reagent</a>
     
-    <a href="/shadow-cljs.html">shadow-cljs</a>
+    <a href="/shadow-cljs/">shadow-cljs</a>
     
-    <a href="/tests.html">tests</a>
+    <a href="/tests/">tests</a>
     
 </div>
 
@@ -265,11 +266,11 @@ module.exports = function (config) {
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div>
         </div>
     </div>
     <footer>Copyright &copy; 2021 Arthur Barroso
-        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+        <p style="text-align: center;margin: 0;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
 </div>
 <script>hljs.highlightAll();</script>
 

@@ -43,13 +43,22 @@ body {
 
 .navbar-header .navbar-title {
   font-size: 38px;
-  font-weight: 700;
+  font-weight: 900;
+}
+
+.navbar-header .navbar-title:hover {
+  color: #5e5e5e;
 }
 
 .navbar-header .navbar-list {
   list-style: none;
   display: flex;
   text-transform: lowercase;
+}
+
+.continue-reading {
+  text-decoration: none;
+  font-weight: 500;
 }
 
 #content img {
@@ -83,6 +92,12 @@ blockquote footer {
 }
 .post-header h2 {
     font-size: 32px;
+}
+
+.post-header a {
+  font-size: 32px;
+  text-decoration: none;
+  font-weight: 900;
 }
 
 #post-meta {

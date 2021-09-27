@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/base16/solarized-light.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
     {% style "css/screen.css" %}
@@ -44,18 +44,18 @@
 
 
     <div class="row">
-        <div class="col-lg-9">
+        <div>
             <div id="content">
                 {% block content %}
                 {% endblock %}
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div>
         </div>
     </div>
     <footer>Copyright &copy; {{today|date:yyyy}} {{author}}
-        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+        <p style="text-align: center;margin: 0;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
 </div>
 <script>hljs.highlightAll();</script>
 {% if post.klipse %} {{post.klipse|safe}} {% endif %}

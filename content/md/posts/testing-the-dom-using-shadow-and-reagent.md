@@ -129,7 +129,8 @@ With `react-dom/test-utils`, we're able to simulate user events and check whethe
       (let [app-element (.getElementById js/document "app")
             button (-> (.getElementsByTagName app-element "button")
                        (first))] ;; gets the button element
-        (.click dom-test-utils/Simulate button) ;; react-dom/test-utils simulates a user click
+        (.click dom-test-utils/Simulate button) 
+        ;; react-dom/test-utils simulates a user click
         (is (= 2 @ra)))))) ;; ra's value should've been incremented
 ```
 This example uses a reagent atom to check whether on-click has been called. This could also be done using re-frame, for example.
