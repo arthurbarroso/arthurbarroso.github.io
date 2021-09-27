@@ -42,7 +42,8 @@ body {
 }
 
 .navbar-header .navbar-title {
-  font-size: 38px
+  font-size: 38px;
+  font-weight: 700;
 }
 
 .navbar-header .navbar-list {
@@ -121,6 +122,10 @@ pre {
 
     .navbar-header {
       flex-direction: column;
+    }
+
+    .navbar-list {
+        margin-top: 8%;
     }
 
     #content{
