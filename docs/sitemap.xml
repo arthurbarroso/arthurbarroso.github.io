@@ -2,7 +2,7 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url>
 <loc>
-http://arthurbarroso.github.ioauthors-output/Arthur Barroso.html
+http://arthurbarroso.github.ioArthur Barroso.html
 </loc>
 <lastmod>
 2021-09-27
@@ -11,6 +11,14 @@ http://arthurbarroso.github.ioauthors-output/Arthur Barroso.html
 <url>
 <loc>
 http://arthurbarroso.github.ioshadow-cljs.html
+</loc>
+<lastmod>
+2021-09-27
+</lastmod>
+</url>
+<url>
+<loc>
+http://arthurbarroso.github.iocollage.html
 </loc>
 <lastmod>
 2021-09-27
@@ -50,14 +58,6 @@ http://arthurbarroso.github.ioindex.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iopages-output/about.html
-</loc>
-<lastmod>
-2021-09-27
-</lastmod>
-</url>
-<url>
-<loc>
 http://arthurbarroso.github.io404.html
 </loc>
 <lastmod>
@@ -83,6 +83,14 @@ http://arthurbarroso.github.iodom.html
 <url>
 <loc>
 http://arthurbarroso.github.ioreagent.html
+</loc>
+<lastmod>
+2021-09-27
+</lastmod>
+</url>
+<url>
+<loc>
+http://arthurbarroso.github.ioabout.html
 </loc>
 <lastmod>
 2021-09-27
