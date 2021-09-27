@@ -2,7 +2,7 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url>
 <loc>
-http://arthurbarroso.github.ioshadow-cljs/index.html
+http://arthurbarroso.github.ioArthur Barroso.html
 </loc>
 <lastmod>
 2021-09-27
@@ -10,7 +10,7 @@ http://arthurbarroso.github.ioshadow-cljs/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioabout/index.html
+http://arthurbarroso.github.ioshadow-cljs.html
 </loc>
 <lastmod>
 2021-09-27
@@ -18,7 +18,7 @@ http://arthurbarroso.github.ioabout/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioarchives/index.html
+http://arthurbarroso.github.iocollage.html
 </loc>
 <lastmod>
 2021-09-27
@@ -26,7 +26,7 @@ http://arthurbarroso.github.ioarchives/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iotags/index.html
+http://arthurbarroso.github.iotesting-the-dom-using-shadow-and-reagent.html
 </loc>
 <lastmod>
 2021-09-27
@@ -34,7 +34,7 @@ http://arthurbarroso.github.iotags/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioArthur Barroso/index.html
+http://arthurbarroso.github.ioarchives.html
 </loc>
 <lastmod>
 2021-09-27
@@ -42,15 +42,7 @@ http://arthurbarroso.github.ioArthur Barroso/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iocollage/index.html
-</loc>
-<lastmod>
-2021-09-27
-</lastmod>
-</url>
-<url>
-<loc>
-http://arthurbarroso.github.iotests/index.html
+http://arthurbarroso.github.iotests.html
 </loc>
 <lastmod>
 2021-09-27
@@ -74,7 +66,7 @@ http://arthurbarroso.github.io404.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iodom/index.html
+http://arthurbarroso.github.iotags.html
 </loc>
 <lastmod>
 2021-09-27
@@ -82,7 +74,7 @@ http://arthurbarroso.github.iodom/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.ioreagent/index.html
+http://arthurbarroso.github.iodom.html
 </loc>
 <lastmod>
 2021-09-27
@@ -90,7 +82,15 @@ http://arthurbarroso.github.ioreagent/index.html
 </url>
 <url>
 <loc>
-http://arthurbarroso.github.iotesting-the-dom-using-shadow-and-reagent/index.html
+http://arthurbarroso.github.ioreagent.html
+</loc>
+<lastmod>
+2021-09-27
+</lastmod>
+</url>
+<url>
+<loc>
+http://arthurbarroso.github.ioabout.html
 </loc>
 <lastmod>
 2021-09-27
