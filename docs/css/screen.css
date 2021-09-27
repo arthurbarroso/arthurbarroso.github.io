@@ -100,20 +100,6 @@ blockquote footer {
 pre {
     overflow-x: auto;
 }
-pre code {
-    display: block;
-    padding: 0.5em;
-    overflow-wrap: normal;
-    white-space: pre;
-}
-
-code {
-    color: #428bca;
-}
-
-pre, code, .hljs {
-    background-color: #f7f9fd;
-}
 
 @media (min-width: 768px) {
     .navbar {
@@ -132,6 +118,11 @@ pre, code, .hljs {
     body{
         font-size: 14px;
     }
+
+    .navbar-header {
+      flex-direction: column;
+    }
+
     #content{
         padding: 15px;
     }

@@ -1,5 +1,0 @@
-{:deps
- {babashka/babashka.pods {:mvn/version "0.0.1"}}
- :aliases {:nrepl
-           {:extra-deps
-            {nrepl/nrepl {:mvn/version "0.8.3"}}}}}
