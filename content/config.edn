@@ -7,7 +7,7 @@
  :post-root-uri                ""
  :page-root-uri                "pages-output"
  :author-root-uri              "authors-output"
- :public-dest                  "public"
+ :public-dest                  "docs"
  :blog-prefix                  ""
  :posts-per-page               3
  :blocks-per-preview           2 
