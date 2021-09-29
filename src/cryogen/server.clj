@@ -1,16 +1,15 @@
 (ns cryogen.server
-  (:require 
-   [clojure.string :as string]
-   [compojure.core :refer [GET defroutes]]
-   [compojure.route :as route]
-   [ring.util.response :refer [redirect file-response]]
-   [ring.util.codec :refer [url-decode]]
-   [ring.server.standalone :as ring-server]
-   [cryogen-core.watcher :refer [start-watcher! start-watcher-for-changes!]]
-   [cryogen-core.plugins :refer [load-plugins]]
-   [cryogen-core.compiler :refer [compile-assets-timed]]
-   [cryogen-core.config :refer [resolve-config]]
-   [cryogen-core.io :refer [path]]))
+  (:require [clojure.string :as string]
+            [compojure.core :refer [GET defroutes]]
+            [compojure.route :as route]
+            [cryogen-core.compiler :refer [compile-assets-timed]]
+            [cryogen-core.config :refer [resolve-config]]
+            [cryogen-core.io :refer [path]]
+            [cryogen-core.plugins :refer [load-plugins]]
+            [cryogen-core.watcher :refer [start-watcher! start-watcher-for-changes!]]
+            [ring.server.standalone :as ring-server]
+            [ring.util.codec :refer [url-decode]]
+            [ring.util.response :refer [redirect file-response]]))
 
 (defn init [fast?]
   (println "Init: fast compile enabled = " (boolean fast?))
@@ -34,26 +33,15 @@
                                last
                                (string/includes? ".")
                                not))
-                     (condp = clean-urls
-                       :trailing-slash (path req-uri "index.html")
-                       :no-trailing-slash (if (or (= req-uri "")
-                                                  (= req-uri "/")
-                                                  (= req-uri
-                                                     (if (string/blank? blog-prefix)
-                                                       blog-prefix
-                                                       (.substring blog-prefix 1))))
-                                            (path req-uri "index.html")
-                                            (path (str req-uri ".html")))
-                       :dirty (path (str req-uri ".html")))
+                     (path req-uri)
                      req-uri)]
       (or (file-response res-path {:root public-dest})
           (handler request)))))
 
 (defroutes routes
   (GET "/" [] (redirect (let [config (resolve-config)]
-                          (path (:blog-prefix config)
-                                (when (= (:clean-urls config) :dirty)
-                                  "index.html")))))
+                          (path (:blog-prefix config
+                                              "index.html")))))
   (route/files "/")
   (route/not-found "Page not found"))
 
@@ -67,4 +55,4 @@
     (merge {:init (partial init fast)} opts)))
 
 (defn -main [& args]
-  (serve {:port 3000, :fast ((set args) "fast")}))
+  (serve {:port 3000 :fast ((set args) "fast")}))
