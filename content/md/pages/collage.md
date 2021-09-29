@@ -17,3 +17,6 @@ Some of the digital collage stuff I still have. May be able to find some more of
 ![11](/img/collage/PTQvC1hh.jpg)
 ![12](/img/collage/sick.png)
 ![13](/img/collage/stuffed.png)
+![14](/img/collage/warf.png)
+![15](/img/collage/publicint.png)
+![16](/img/collage/fishin.png)
