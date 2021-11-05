@@ -177,6 +177,8 @@ The above build hook creates a copy of our shadow-built code and removes all of 
         (.eval context app-s)
         (.asString (execute-fn context fun arg))))))
 ```
+ps.: the `serialize-arg` function was found [here](https://github.com/wavejumper/clj-polyglot/blob/e56783822e85d0b75d048c3e6a8b597f0e26724a/src/clj_polyglot/core.clj)
+
 The component we'll prerender throughout this post:
 ```clj
 (ns app.component
