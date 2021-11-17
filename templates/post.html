@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{%block subtitle %}: {{post.title}}{% endblock %}
+{% block meta %}
+<meta name="keywords" content="{% for tag in tags %}{{tag}}{% if not forloop.last %},{% endif %}{% endfor %}">
+{% if post.description %}
+<meta name="description" content="{{post.description}}">
+{% comment %} OpenGraph tags {% endcomment %}
+<meta property="og:description" content="{{post.description}}">
+{% endif %}
+<meta property="og:url" content="{{site-url}}{{uri}}" />
+<meta property="og:title" content="{{post.title}}" />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://www.arthurbrrs.me/img/collage/publicint.png"/>
+{% endblock %}
+{% block content %}
+<div id="post">
+    <div class="post-header">
+        <div id="post-meta" class="row">
+            <div class="col-lg-6">{{post.date}}</div>
+            {% if post.author %}
+            <span class="col-lg-6 right">By: {{post.author}}</span>
+            {% endif %}
+        </div>
+        <h2>{{post.title}}</h2>
+    </div>
+    <div>
+        {% if post.toc %}{{post.toc|safe}}{% endif %}
+        {{post.content|safe}}
+    </div>
+    {% if post.tags|not-empty %}
+    <div id="post-tags">
+        <b>Tags: </b>
+        {% for tag in post.tags %}
+        <a href="{{tag.uri}}">{{tag}}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

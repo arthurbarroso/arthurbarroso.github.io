@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{%block subtitle %}: archives{% endblock %}
+{% block content %}
+<div id="posts">
+    <div id="page-header">
+        <h2>archives</h2>
+    </div>
+    <ul>
+    {% for post in posts %}
+    <li>
+        {{post.date}} - <a href="{{post.uri}}">{{post.title}}</a>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
