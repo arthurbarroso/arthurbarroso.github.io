@@ -5,6 +5,9 @@
             [selmer.parser :as selmer]
             [slugger.core :as slug]))
 
+(def config {:archives-uri "archives"
+             :title "((arthur barroso))"})
+
 (defn filter-post [post]
   (string/includes? (.getName post) ".md"))
 
@@ -26,15 +29,6 @@
     (if (nil? tags)
       post
       (assoc-in post [:metadata :tags] (string/split tags #",")))))
-
-(defn post->url [post]
-  (assoc post
-         :url-html (string/replace
-                    (:file-name post)
-                    ".md" ".html")
-         :url-clean (string/replace
-                     (:file-name post)
-                     ".md" "")))
 
 (defn post->selmer [post]
   (let [metadata (-> post :metadata)]
@@ -81,9 +75,8 @@
 (defn render-post [post]
   (selmer/cache-off!)
   (selmer/render-file "post.html"
-                      {:title "((arthur barroso))"
-                       :archives-uri "archives.html"
-                       :post post}))
+                      (merge config
+                             {:post post})))
 
 (defn save-post [post html-content]
   (spit
@@ -97,16 +90,14 @@
   (let [posts (get-posts)]
     (spit "./docs/archives.html"
         (selmer/render-file "archives.html"
-               {:title "((arthur barroso))"
-                :posts posts}))))
+               (merge config {:posts posts})))))
 
 (defn render-home []
   (let [posts (get-posts)]
     (spit "./docs/index.html"
         (selmer/render-file "home.html"
-               {:title "((arthur barroso))"
-                :archives-uri "archives.html"
-                :posts posts}))))
+                (merge config
+                       {:posts posts})))))
 
 (defn render-about []
   (let [raw-content (slurp "./pages/about.md")
@@ -114,36 +105,43 @@
                           raw-content})]
      (spit "./docs/about.html"
          (selmer/render-file "page.html"
-                             {:title "((arthur barroso))"
-                              :archives-uri "archives.html"
-                              :page {:title "((arthur barroso))"
-                                     :description "about"
-                                     :content (:parsed-content
-                                               post)}}))))
+                (merge config
+                       {:page {:title "((arthur barroso))"
+                               :description "about"
+                               :content (:parsed-content
+                                         post)}})))))
 
 (defn render-collage []
   (let [raw-content (slurp "./pages/collage.md")
         post (post->html {:raw-content
                           raw-content})]
      (spit "./docs/collage.html"
-         (selmer/render-file "page.html"
-                             {:title "((arthur barroso))"
-                              :archives-uri "archives.html"
-                              :page {:title "((arthur barroso))"
-                                     :description "collage"
-                                     :content (:parsed-content
-                                               post)}}))))
+           (selmer/render-file "page.html"
+                    (merge config
+                     {:title "((arthur barroso))"
+                      :archives-uri "archives.html"
+                      :page {:title "((arthur barroso))"
+                             :description "collage"
+                             :content (:parsed-content
+                                       post)}})))))
 
 (defn render-404 []
   (let [posts (get-posts)]
     (spit "./docs/404.html"
         (selmer/render-file "404.html"
-               {:title "((arthur barroso))"
-                :archives-uri "archives.html"
-                :posts posts}))))
+                            (merge config {:posts posts})))))
 
-(comment
+(defn render-all []
   (let [post (first (get-posts))]
     (->> post
          render-post
-         (save-post post))))
+         (save-post post)))
+  (render-archives)
+  (render-404)
+  (render-about)
+  (render-collage)
+  (render-home))
+
+
+(comment
+  (render-all))
