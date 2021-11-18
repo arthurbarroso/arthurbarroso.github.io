@@ -3,7 +3,8 @@
             [clojure.string :as string]
             [markdown.core :as markdown]
             [selmer.parser :as selmer]
-            [slugger.core :as slug]))
+            [slugger.core :as slug]
+            [tick.core :as t]))
 
 (def config {:archives-uri "archives"
              :title "((arthur barroso))"})
@@ -38,7 +39,7 @@
       :description (-> metadata :description first)
       :tags (-> metadata :tags)
       :content (:parsed-content post)
-      :date (-> metadata :date first)
+      :date (-> metadata :date first t/date)
       :url (-> metadata :link first)})))
 
 (defn post->slug [post]
@@ -87,13 +88,13 @@
    html-content))
 
 (defn render-archives []
-  (let [posts (get-posts)]
+  (let [posts (reverse (sort-by :date (get-posts)))]
     (spit "./docs/archives.html"
         (selmer/render-file "archives.html"
                (merge config {:posts posts})))))
 
 (defn render-home []
-  (let [posts (get-posts)]
+  (let [posts (reverse (sort-by :date (get-posts)))]
     (spit "./docs/index.html"
         (selmer/render-file "home.html"
                 (merge config
@@ -132,16 +133,14 @@
                             (merge config {:posts posts})))))
 
 (defn render-all []
-  (let [post (first (get-posts))]
-    (->> post
-         render-post
-         (save-post post)))
+  (let [posts (get-posts)]
+    (doseq [p posts]
+      (save-post p (render-post p))))
   (render-archives)
   (render-404)
   (render-about)
   (render-collage)
   (render-home))
-
 
 (comment
   (render-all))
