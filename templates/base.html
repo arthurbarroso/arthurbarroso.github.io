@@ -29,13 +29,6 @@
             <ul class="navbar-list">
               <li><a href="{{archives-uri}}">archives</a></li>
               <li><a href="collage">collage</a></li>
-              {% for nav-page in navbar-pages %}
-              <li
-              {%ifequal page.uri nav-page.uri %} class="active" {% endifequal %}>
-              <a href="{{nav-page.uri}}">{{nav-page.title}}</a>
-              </li>
-              {% endfor %}
-              <li><a href="{{rss-uri}}">RSS</a></li>
             </ul>
         </div>
     </div>
@@ -54,7 +47,7 @@
         <div>
         </div>
     </div>
-    <footer>Copyright &copy; {{today|date:yyyy}} {{author}}</footer>
+    <footer>Copyright &copy; 2021 {{author}}</footer>
 </div>
 <script>hljs.highlightAll();</script>
 </body>

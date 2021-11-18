@@ -7,6 +7,7 @@
             [tick.core :as t]))
 
 (def config {:archives-uri "archives"
+             :author "Arthur Barroso"
              :title "((arthur barroso))"})
 
 (defn filter-post [post]
