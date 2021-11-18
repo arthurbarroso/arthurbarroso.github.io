@@ -13,3 +13,4 @@ pom.xml.asc
 /public/
 .lsp/
 .clj-kondo
+node_modules
