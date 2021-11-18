@@ -1,9 +1,9 @@
 Author: Arthur Barroso
 Title: React prerendering experiments in Clojure(script) land
 Link: Prerendering React Clojurescript Land
-Description: A test post
+Description: A blog post about different React pre-rendering techniques and approaches in Clojure(script)
 Date: 2021-09-21
-Tags: teste, um, dois, três
+Tags: shadow-cljs, react, clojure, clojurescript, pre-render, ssr
 
 I've been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop [brundij](https://github.com/arthurbarroso/brundij) and realized I wouldn't be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.
 

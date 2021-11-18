@@ -1,9 +1,9 @@
 Author: Arthur Barroso
 Title: Testing the DOM using shadow-cljs and Reagent
 Link: testing the dom using shadow and reagent
-Description: A test post
+Description: Testing reagent dom components and screens using shadow-cljs and Clojurescript
 Date: 2021-09-13
-Tags: shadow-cljs, reagent, tests, dom
+Tags: shadow-cljs, reagent, tests, dom, react, clojurescript
 
 I've been recently trying to build [brundij](https://github.com/arthurbarroso/brundij), an open-source tool for squad health checks. I ended up deciding on using Clojure and Clojurescript to build it (I've been learning clojure for a few months already but feel like a complete beginner, so I thought building something might help me grasp some stuff). I also decided to use `shadow-cljs` to set up my project.
 
