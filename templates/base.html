@@ -49,7 +49,15 @@
     </div>
     <footer>Copyright &copy; 2021 {{author}}</footer>
 </div>
-<!-- <script>hljs.highlightAll();</script> -->
 <script src="/js/clojure_highlighter.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
+            console.log(el)
+            hljs.highlightElement(el);
+        });
+    });
+</script>
+<!-- <script>hljs.highlightAll();</script> -->
 </body>
 </html>
