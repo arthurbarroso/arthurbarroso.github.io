@@ -27,8 +27,8 @@
         <div class="navbar-header">
             <a class="navbar-title" href="/">{{title}}</a>
             <ul class="navbar-list">
-              <li
-              {% if archives %} class="active" {% endif %}><a href="{{archives-uri}}">Archives</a></li>
+              <li><a href="{{archives-uri}}">archives</a></li>
+              <li><a href="collage">collage</a></li>
               {% for nav-page in navbar-pages %}
               <li
               {%ifequal page.uri nav-page.uri %} class="active" {% endifequal %}>
