@@ -133,7 +133,7 @@
         (selmer/render-file "404.html"
                             (merge config {:posts posts})))))
 
-(defn render-all []
+(defn render-all [_]
   (let [posts (get-posts)]
     (doseq [p posts]
       (save-post p (render-post p))))
@@ -144,4 +144,4 @@
   (render-home))
 
 (comment
-  (render-all))
+  (render-all {}))
