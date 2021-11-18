@@ -1,14 +1,11 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
-        ring-server/ring-server {:mvn/version "0.5.0"}
-        ring/ring-devel {:mvn/version "1.8.2"}
-        compojure/compojure {:mvn/version "1.6.2"}
-        cryogen-flexmark/cryogen-flexmark {:mvn/version "0.1.4"}
-        cryogen-core/cryogen-core {:mvn/version "0.4.0"}}
- :aliases {;; Run with `clojure -M:build`
-           :build {:main-opts ["-m" "cryogen.core"]}
-           ;; Start a server serving the blog: `clojure -X:serve`
-           ;; (requires tools-deps 0.9.745+)
-           :serve {:exec-fn   cryogen.server/serve
-                   :exec-args {:port 3000}}
-           :serve-fast {:exec-fn   cryogen.server/serve
-                        :exec-args {:port 3000, :fast true}}}}
+{:deps {org.clojure/clojure {:mvn/version "1.10.3"}
+        ring/ring {:mvn/version "1.8.1"}
+        markdown-clj/markdown-clj {:mvn/version "1.10.6"}
+        metosin/reitit {:mvn/version "0.5.5"}
+        hawk/hawk {:mvn/version "0.2.11"}
+        selmer/selmer {:mvn/version "1.12.44"}
+        slugger/slugger {:mvn/version "1.0.1"}
+        tick/tick {:mvn/version "0.5.0-RC5"}}
+ :paths ["src" "posts" "templates" "resources"]
+ :aliases {:generate {:ns-default core
+                      :exec-fn render-all}}}

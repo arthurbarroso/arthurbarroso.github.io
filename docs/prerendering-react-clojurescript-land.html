@@ -4,26 +4,26 @@
     <meta charset="utf-8"/>
     <title>((arthur barroso)): React prerendering experiments in Clojure(script) land</title>
     
-<meta name="keywords" content="dom,re-frame,clojure,reagent,prerender,shadow-cljs,tests,react,clojurescript">
+<meta name="keywords" content="">
 
-<meta name="description" content="I&#39;ve been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop brundij and realized I wouldn&#39;t be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.">
+<meta name="description" content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)">
 
-<meta property="og:description" content="I&#39;ve been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop brundij and realized I wouldn&#39;t be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.">
+<meta property="og:description" content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)">
 
-<meta property="og:url" content="https://arthurbrrs.me/prerendering-react-clojurescript-land.html" />
+<meta property="og:url" content="" />
 <meta property="og:title" content="React prerendering experiments in Clojure(script) land" />
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://www.arthurbrrs.me/img/collage/publicint.png"/>
 
-    <link rel="canonical" href="https://arthurbrrs.me/prerendering-react-clojurescript-land.html">
+    <link rel="canonical" href="">
     <link rel="shortcut icon" href="css/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/arduino-light.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
-    <link href="/css/screen.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <link href="css/screen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
@@ -31,22 +31,10 @@
 <nav class="navbar">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-title" href="/index.html">((arthur barroso))</a>
+            <a class="navbar-title" href="/">((arthur barroso))</a>
             <ul class="navbar-list">
-              <li
-              ><a href="/archives.html">Archives</a></li>
-              
-              <li
-              >
-              <a href="/collage.html">collage</a>
-              </li>
-              
-              <li
-              >
-              <a href="/about.html">about</a>
-              </li>
-              
-              <li><a href="/feed.xml">RSS</a></li>
+              <li><a href="archives">archives</a></li>
+              <li><a href="collage">collage</a></li>
             </ul>
         </div>
     </div>
@@ -54,449 +42,418 @@
 
 
 <div class="container">
-
-
     <div class="row">
         <div>
             <div id="content">
                 
 <div id="post">
     <div class="post-header">
-    <div id="post-meta" class="row">
-        <div class="col-lg-6">September 21, 2021</div>
-        
+        <div id="post-meta" class="row">
+            <div class="col-lg-6">2021-09-21</div>
+            
+            <span class="col-lg-6 right">By: Arthur Barroso</span>
+            
+        </div>
+        <h2>React prerendering experiments in Clojure(script) land</h2>
     </div>
-    <h2>React prerendering experiments in Clojure(script) land</h2>
-</div>
-<div>
-    <ol class="toc"><li><a href="#react-prerendering">React prerendering</a></li><li><a href="#clojurescript-and-prerendering">Clojurescript and prerendering</a></li><li><a href="#first-setup-using-graalvm-and-polyglot">First setup: using GraalVM and Polyglot</a></li><ol><li><a href="#server-side-rendering">Server-side rendering</a></li><li><a href="#generating-static-htmls">Generating static HTMLs</a></li><li><a href="#http-requests-from-within-the-client">HTTP requests from within the client</a></li></ol><li><a href="#second-setup-headless-chrome-using-etaoin">Second setup: Headless Chrome using Etaoin</a></li><li><a href="#third-setup-building-prerender-scripts-using-shadow-cljs">Third setup: building prerender scripts using shadow-cljs</a></li><li><a href="#fourth-setup-using-nbb">Fourth setup: using <code>nbb</code></a></li><li><a href="#wrapping-up">Wrapping up</a></li></ol>
-    <p>I've been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop <a href="https://github.com/arthurbarroso/brundij">brundij</a> and realized I wouldn't be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.</p><p>I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.</p><p>While writing, I realized this post would end up getting quite lengthy, so I also pushed a demo repository with all the code you'd need to follow everything I've written. You can check it <a href="https://github.com/arthurbarroso/blog-prerendering-demo">here</a></p><h3 id="react-prerendering">React prerendering</h3><p>Prerendering in React is commonly achieved by using frameworks such as Next.js and Gatsby. These tools/frameworks share a common feature: they make it possible to generate your application's static HTML on build time. (Next.js also makes it possible to generate the static content/page on each request, using server-side-rendering).</p><p>What happens for both of these strategies (static generation and server-side rendering) is that the React components/views get rendered to a string that later gets event handlers attached to it. This means the client downloads a prerendered static HTML version of the React application and React attaches event handlers to it afterward. This is done  by using <a href="https://reactjs.org/docs/react-dom-server.html">ReactDomServer.renderToString()</a> and <a href="https://reactjs.org/docs/react-dom.html#hydrate">React.hydrate()</a>.</p><h3 id="clojurescript-and-prerendering">Clojurescript and prerendering</h3><p>I wanted to be able to write my applications using Clojurescript and still prerender them. The problem for Clojurescript is that these React prerendering frameworks often don't play well with it, as pointed out by Thomas Heller in <a href="https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912">this post</a>.</p><p>This ultimately got me into thinking about how could I achieve prerendering in my Reagent/re-frame applications without having to spin up a node server. I then started looking for stuff on that topic, which led me to a few findings:</p><ul><li><a href="https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure">React Server Side Rendering with GraalVM for Clojure</a></li><li><a href="https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0">Prerendering a re-frame app with Chrome headless</a></li><li><a href="https://github.com/pupeno/prerenderer">pupeno/Prerenderer</a> - which I haven't yet tried and won't talk about in this post</li><li><a href="https://github.com/borkdude/nbb">borkdude/nbb</a></li></ul><p>These resources helped me grasp things and try a few different setups, which I'll describe here.</p><h3 id="first-setup-using-graalvm-and-polyglot">First setup: using GraalVM and Polyglot</h3><p>This setup is heavily based on the post I linked above, <a href="https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure">React Server Side Rendering with GraalVM for Clojure</a>, but I decided to tweak things a little bit to better suit my development workflow:</p><ul><li>Instead of using Nextjournal's custom Clojurescript version, I decided to go with <code>shadow-cljs</code> and use its related Clojurescript version.</li><li>I wanted to use re-frame to control my application's state.</li></ul><p>To acheive this, I needed to do some digging and do some hackish things that aren't really recommended. Let's take a look at the steps needed to get shadow, graal and re-frame working:</p><p>We will start by first defining our <code>deps.edn</code> file:</p><pre><code class="clj">;;deps.edn
-{:deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        reagent/reagent {:mvn/version "1.1.0"}
-        thheller/shadow-cljs {:mvn/version "2.15.10"}
-        re-frame/re-frame {:mvn/version "1.2.0"}
-        org.clojure/core.async {:mvn/version "1.3.618"}}
+    <div>
+        
+        <p>I've been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop <a href='https://github.com/arthurbarroso/brundij'>brundij</a> and realized I wouldn't be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.</p><p>I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.</p><p>While writing, I realized this post would end up getting quite lengthy, so I also pushed a demo repository with all the code you'd need to follow everything I've written. You can check it <a href='https://github.com/arthurbarroso/blog-prerendering-demo'>here</a></p><h3>React prerendering</h3><p>Prerendering in React is commonly achieved by using frameworks such as Next.js and Gatsby. These tools/frameworks share a common feature: they make it possible to generate your application's static HTML on build time. (Next.js also makes it possible to generate the static content/page on each request, using server-side-rendering).</p><p>What happens for both of these strategies (static generation and server-side rendering) is that the React components/views get rendered to a string that later gets event handlers attached to it. This means the client downloads a prerendered static HTML version of the React application and React attaches event handlers to it afterward. This is done  by using <a href='https://reactjs.org/docs/react-dom-server.html'>ReactDomServer.renderToString()</a> and <a href='https://reactjs.org/docs/react-dom.html#hydrate'>React.hydrate()</a>.</p><h3>Clojurescript and prerendering</h3><p>I wanted to be able to write my applications using Clojurescript and still prerender them. The problem for Clojurescript is that these React prerendering frameworks often don't play well with it, as pointed out by Thomas Heller in <a href='https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912'>this post</a>.</p><p>This ultimately got me into thinking about how could I achieve prerendering in my Reagent/re-frame applications without having to spin up a node server. I then started looking for stuff on that topic, which led me to a few findings:</p><ul><li><a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a></li><li><a href='https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0'>Prerendering a re-frame app with Chrome headless</a></li><li><a href='https://github.com/pupeno/prerenderer'>pupeno/Prerenderer</a> - which I haven't yet tried and won't talk about in this post</li><li><a href='https://github.com/borkdude/nbb'>borkdude/nbb</a></li></ul><p>These resources helped me grasp things and try a few different setups, which I'll describe here.</p><h3>First setup: using GraalVM and Polyglot</h3><p>This setup is heavily based on the post I linked above, <a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a>, but I decided to tweak things a little bit to better suit my development workflow:</p><ul><li>Instead of using Nextjournal's custom Clojurescript version, I decided to go with <code>shadow-cljs</code> and use its related Clojurescript version.</li><li>I wanted to use re-frame to control my application's state.</li></ul><p>To acheive this, I needed to do some digging and do some hackish things that aren't really recommended. Let's take a look at the steps needed to get shadow, graal and re-frame working:</p><p>We will start by first defining our <code>deps.edn</code> file:<pre><code class="clj">;;deps.edn
+{:deps {org.clojure/clojure {:mvn/version &quot;1.10.3&quot;}
+        reagent/reagent {:mvn/version &quot;1.1.0&quot;}
+        thheller/shadow-cljs {:mvn/version &quot;2.15.10&quot;}
+        re-frame/re-frame {:mvn/version &quot;1.2.0&quot;}
+        org.clojure/core.async {:mvn/version &quot;1.3.618&quot;}}
 
- :paths ["src" "dev"]
+ :paths &#91;&quot;src&quot; &quot;dev&quot;&#93;
 
- :aliases {:cljs {:main-opts ["-m" "shadow.cljs.devtools.cli"]
-                  :paths ["src" "dev"]}
+ :aliases {:cljs {:main-opts &#91;&quot;-m&quot; &quot;shadow.cljs.devtools.cli&quot;&#93;
+                  :paths &#91;&quot;src&quot; &quot;dev&quot;&#93;}
 
-           :repl {:extra-deps {nrepl/nrepl {:mvn/version "0.8.3"}
-                               cider/cider-nrepl {:mvn/version "0.26.0"}}
-                  :extra-paths ["public/assets"]
-                  :main-opts ["-m" "nrepl.cmdline"
-                              "--interactive"
-                              "--middleware"
-                              "[cider.nrepl/cider-middleware]"]}}}
-</code></pre><p>Now it is time to create our <code>shadow-cljs.edn</code> config file.</p><pre><code class="clj">;;shadow-cljs.edn
+           :repl {:extra-deps {nrepl/nrepl {:mvn/version &quot;0.8.3&quot;}
+                               cider/cider-nrepl {:mvn/version &quot;0.26.0&quot;}}
+                  :extra-paths &#91;&quot;public/assets&quot;&#93;
+                  :main-opts &#91;&quot;-m&quot; &quot;nrepl.cmdline&quot;
+                              &quot;--interactive&quot;
+                              &quot;--middleware&quot;
+                              &quot;&#91;cider.nrepl/cider-middleware&#93;&quot;&#93;}}}
+</code></pre></p><p>Now it is time to create our <code>shadow-cljs.edn</code> config file.<pre><code class="clj">;;shadow-cljs.edn
 {:nrepl {:port 8777}
 
  :deps true
 
  :dev-http
- {8280 "public"}
+ {8280 &quot;public&quot;}
 
  :builds
    {:app {:target :graaljs
-          :output-to "public/assets/graal.js"
-          :entries [app.component]
-          :jvm-opts ["-Xmx4G"]
+          :output-to &quot;public/assets/graal.js&quot;
+          :entries &#91;app.component&#93;
+          :jvm-opts &#91;&quot;-Xmx4G&quot;&#93;
           :modules
-          {:app {:init-fn [app.component/countinghtml]}}}}}
-</code></pre><p>If we compile our code using the above configuration and try to use any of javascript's async functions such as <code>setTimeout</code> or <code>setInterval</code> we'll be greeted with an error message saying async is not yet supported in shadow's graaljs target.  As seen on <a href="https://github.com/thheller/shadow-cljs/issues/685">this issue</a> on shadow-cljs's repo, Clojurescript removed the shims needed for async to work in its graaljs compile target, which means we'll have to add those shims ourselves.  We will want shadow to prepend our built code with these shims and also remove the definitions of the functions shadow creates for these. This can be done by adding the key <code>:prepend-js</code> pointing at <a href="https://github.com/clojure/clojurescript/blob/e4300da64c4781735146cafc0ca029046b83944c/src/main/cljs/cljs/bootstrap_graaljs.js">this file</a> to our <code>:app</code> module and by creating a build hook:</p><pre><code class="clj">;;shadow-cljs.edn
+          {:app {:init-fn &#91;app.component/countinghtml&#93;}}}}}
+</code></pre></p><p>If we compile our code using the above configuration and try to use any of javascript's async functions such as <code>setTimeout</code> or <code>setInterval</code> we'll be greeted with an error message saying async is not yet supported in shadow's graaljs target.  As seen on <a href='https://github.com/thheller/shadow-cljs/issues/685'>this issue</a> on shadow-cljs's repo, Clojurescript removed the shims needed for async to work in its graaljs compile target, which means we'll have to add those shims ourselves.  We will want shadow to prepend our built code with these shims and also remove the definitions of the functions shadow creates for these. This can be done by adding the key <code>:prepend-js</code> pointing at <a href='https://github.com/clojure/clojurescript/blob/e4300da64c4781735146cafc0ca029046b83944c/src/main/cljs/cljs/bootstrap_graaljs.js'>this file</a> to our <code>:app</code> module and by creating a build hook:<pre><code class="clj">;;shadow-cljs.edn
 {...
  :builds
    {:app {...
           :modules
-            {:app {:init-fn [app.component/countinghtml]}
-           :prepend-js "./graal-bootstrap.js"}
-          :build-hooks [(util.clean/hook)]}}}
-</code></pre><p>Our hook:</p><pre><code class="clj">;;src/util/clean.clj
-(ns util.clean
-  (:require [clojure.java.io :as io]
-            [clojure.string :as string]))
+            {:app {:init-fn &#91;app.component/countinghtml&#93;}
+           :prepend-js &quot;./graal-bootstrap.js&quot;}
+          :build-hooks &#91;&#40;util.clean/hook&#41;&#93;}}}
+</code></pre></p><p>Our hook:<pre><code class="clj">;;src/util/clean.clj
+&#40;ns util.clean
+  &#40;:require &#91;clojure.java.io :as io&#93;
+            &#91;clojure.string :as string&#93;&#41;&#41;
 
-(defn hook
+&#40;defn hook
   {:shadow.build/stage :flush}
-  [build-state &amp; args]
-  (let [original (slurp (io/file "public/assets/graal.js"))
-        start (- (string/index-of original "function graaljs_async_not_supported()") 0)
-        to-replace (subs original start (+ start 664))]
-    (spit "public/assets/clean.js"
-          (-&gt; original
-              (string/replace to-replace " "))))
-  build-state)
-</code></pre><p>The above build hook creates a copy of our shadow-built code and removes all of shadow's <code>graaljs async_not supported</code> functions, so our code ends up calling our shims instead of throwing async not supported errors. It is now time to set up Graal's Polyglot and our very first component:</p><pre><code class="clj">(ns app.render
-  (:require [clojure.java.io :as io])
-  (:import (org.graalvm.polyglot Context Source Engine)
-           (org.graalvm.polyglot.proxy ProxyArray ProxyObject)))
+  &#91;build-state &amp; args&#93;
+  &#40;let &#91;original &#40;slurp &#40;io/file &quot;public/assets/graal.js&quot;&#41;&#41;
+        start &#40;- &#40;string/index-of original &quot;function graaljs&#95;async&#95;not&#95;supported&#40;&#41;&quot;&#41; 0&#41;
+        to-replace &#40;subs original start &#40;+ start 664&#41;&#41;&#93;
+    &#40;spit &quot;public/assets/clean.js&quot;
+          &#40;-&gt; original
+              &#40;string/replace to-replace &quot; &quot;&#41;&#41;&#41;&#41;
+  build-state&#41;
+</code></pre></p><p>The above build hook creates a copy of our shadow-built code and removes all of shadow's <code>graaljs async&#95;not supported</code> functions, so our code ends up calling our shims instead of throwing async not supported errors. It is now time to set up Graal's Polyglot and our very first component:</p><pre><code class="clj">&#40;ns app.render
+  &#40;:require &#91;clojure.java.io :as io&#93;&#41;
+  &#40;:import &#40;org.graalvm.polyglot Context Source Engine&#41;
+           &#40;org.graalvm.polyglot.proxy ProxyArray ProxyObject&#41;&#41;&#41;
 
-(defn serialize-arg [arg]
-  (cond
-    (keyword? arg)
-      (name arg)
+&#40;defn serialize-arg &#91;arg&#93;
+  &#40;cond
+    &#40;keyword? arg&#41;
+      &#40;name arg&#41;
 
-    (symbol? arg)
-      (name arg)
+    &#40;symbol? arg&#41;
+      &#40;name arg&#41;
 
-    (map? arg)
-      (ProxyObject/fromMap (into {} (map (fn [[k v]]
-                                           [(serialize-arg k) (serialize-arg v)])
-                                         arg)))
+    &#40;map? arg&#41;
+      &#40;ProxyObject/fromMap &#40;into {} &#40;map &#40;fn &#91;&#91;k v&#93;&#93;
+                                           &#91;&#40;serialize-arg k&#41; &#40;serialize-arg v&#41;&#93;&#41;
+                                         arg&#41;&#41;&#41;
 
-    (coll? arg)
-      (ProxyArray/fromArray (into-array Object (map serialize-arg arg)))
+    &#40;coll? arg&#41;
+      &#40;ProxyArray/fromArray &#40;into-array Object &#40;map serialize-arg arg&#41;&#41;&#41;
 
     :else
-      arg))
+      arg&#41;&#41;
 
-(defn execute-fn [context fn &amp; args]
-  (let [fn-ref (.eval context "js" fn)
-        argsv (into-array Object (map serialize-arg args))]
-    (assert (.canExecute fn-ref) (str "cannot execute " fn))
-    (.execute fn-ref argsv)))
+&#40;defn execute-fn &#91;context fn &amp; args&#93;
+  &#40;let &#91;fn-ref &#40;.eval context &quot;js&quot; fn&#41;
+        argsv &#40;into-array Object &#40;map serialize-arg args&#41;&#41;&#93;
+    &#40;assert &#40;.canExecute fn-ref&#41; &#40;str &quot;cannot execute &quot; fn&#41;&#41;
+    &#40;.execute fn-ref argsv&#41;&#41;&#41;
 
-(defn template-html-2 [react-data]
-  (str "&lt;html&gt;
+&#40;defn template-html-2 &#91;react-data&#93;
+  &#40;str &quot;&lt;html&gt;
         &lt;head&gt;
-       &lt;meta charset=\"utf-8\"&gt;
-         &lt;script src=\"/assets/clean.js\"&gt;
+       &lt;meta charset=\&quot;utf-8\&quot;&gt;
+         &lt;script src=\&quot;/assets/clean.js\&quot;&gt;
          &lt;/script&gt;
         &lt;/head&gt;
         &lt;body&gt;
-        &lt;div id=\"root\"&gt;"
+        &lt;div id=\&quot;root\&quot;&gt;&quot;
        react-data
-       "&lt;/div&gt;
+       &quot;&lt;/div&gt;
        &lt;/body&gt;
        &lt;script&gt;
-        app.component.countinghydrate();
+        app.component.countinghydrate&#40;&#41;;
        &lt;/script&gt;
-       &lt;/html&gt;"))
+       &lt;/html&gt;&quot;&#41;&#41;
 
-(defn context-build []
-  (let [engine (Engine/create)]
-    (doto (Context/newBuilder (into-array String ["js"]))
-      (.engine engine)
-      (.allowExperimentalOptions true)
-      (.option "js.experimental-foreign-object-prototype" "true")
-      (.option "js.timer-resolution" "1")
-      (.option "js.java-package-globals" "false")
-      (.out System/out)
-      (.err System/err)
-      (.allowAllAccess true)
-      (.allowNativeAccess true))))
+&#40;defn context-build &#91;&#93;
+  &#40;let &#91;engine &#40;Engine/create&#41;&#93;
+    &#40;doto &#40;Context/newBuilder &#40;into-array String &#91;&quot;js&quot;&#93;&#41;&#41;
+      &#40;.engine engine&#41;
+      &#40;.allowExperimentalOptions true&#41;
+      &#40;.option &quot;js.experimental-foreign-object-prototype&quot; &quot;true&quot;&#41;
+      &#40;.option &quot;js.timer-resolution&quot; &quot;1&quot;&#41;
+      &#40;.option &quot;js.java-package-globals&quot; &quot;false&quot;&#41;
+      &#40;.out System/out&#41;
+      &#40;.err System/err&#41;
+      &#40;.allowAllAccess true&#41;
+      &#40;.allowNativeAccess true&#41;&#41;&#41;&#41;
 
-(def build-page
-  (memoize
-    (fn [ctx js-file fun arg]
-      (let [context (.build ctx)
-            app-s (-&gt; js-file
-                      (io/file)
-                      (#(.build (Source/newBuilder "js" %))))]
-        (.eval context app-s)
-        (.asString (execute-fn context fun arg))))))
-</code></pre><p>ps.: the <code>serialize-arg</code> function was found <a href="https://github.com/wavejumper/clj-polyglot/blob/e56783822e85d0b75d048c3e6a8b597f0e26724a/src/clj_polyglot/core.clj">here</a></p><p>The component we'll prerender throughout this post:</p><pre><code class="clj">(ns app.component
-  (:require [app.events :as events]
-            [app.subs :as subs]
-            [re-frame.core :as re-frame]
-            ["react-dom" :as react-dom]
-            [reagent.core :as reagent]
-            [reagent.dom.server :as dom-server]))
+&#40;def build-page
+  &#40;memoize
+    &#40;fn &#91;ctx js-file fun arg&#93;
+      &#40;let &#91;context &#40;.build ctx&#41;
+            app-s &#40;-&gt; js-file
+                      &#40;io/file&#41;
+                      &#40;#&#40;.build &#40;Source/newBuilder &quot;js&quot; %&#41;&#41;&#41;&#41;&#93;
+        &#40;.eval context app-s&#41;
+        &#40;.asString &#40;execute-fn context fun arg&#41;&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>ps.: the <code>serialize-arg</code> function was found <a href='https://github.com/wavejumper/clj-polyglot/blob/e56783822e85d0b75d048c3e6a8b597f0e26724a/src/clj_polyglot/core.clj'>here</a></p><p>The component we'll prerender throughout this post:<pre><code class="clj">&#40;ns app.component
+  &#40;:require &#91;app.events :as events&#93;
+            &#91;app.subs :as subs&#93;
+            &#91;re-frame.core :as re-frame&#93;
+            &#91;&quot;react-dom&quot; :as react-dom&#93;
+            &#91;reagent.core :as reagent&#93;
+            &#91;reagent.dom.server :as dom-server&#93;&#41;&#41;
 
-(defn counting-component []
-  (let [click-2 (reagent/atom 0)
-        name (re-frame/subscribe [::subs/name])
-        users (re-frame/subscribe [::subs/users])]
-    (fn []
-      [:div
-       "The atom " [:code "click-count"] " has value: "
-       @click-2 ". "
-       [:p "Name has value " @name]
-       [:p "Users:"
-        (for [user @users]
-          ^{:key (:id user)}
-          [:p (:first_name user)])]
-       [:p "Test 2"]
-       [:input {:type "button" :value "Click me!"
-                :on-click #(swap! click-2 inc)}]
-       [:button {:on-click #(re-frame/dispatch [::events/change-name "teste"])}
-        "Change name"]
-       [:button {:on-click #(re-frame/dispatch [::events/fetch])}
-        "Fetch users"]])))
+&#40;defn counting-component &#91;&#93;
+  &#40;let &#91;click-2 &#40;reagent/atom 0&#41;
+        name &#40;re-frame/subscribe &#91;::subs/name&#93;&#41;
+        users &#40;re-frame/subscribe &#91;::subs/users&#93;&#41;&#93;
+    &#40;fn &#91;&#93;
+      &#91;:div
+       &quot;The atom &quot; &#91;:code &quot;click-count&quot;&#93; &quot; has value: &quot;
+       @click-2 &quot;. &quot;
+       &#91;:p &quot;Name has value &quot; @name&#93;
+       &#91;:p &quot;Users:&quot;
+        &#40;for &#91;user @users&#93;
+          &#94;{:key &#40;:id user&#41;}
+          &#91;:p &#40;:first&#95;name user&#41;&#93;&#41;&#93;
+       &#91;:p &quot;Test 2&quot;&#93;
+       &#91;:input {:type &quot;button&quot; :value &quot;Click me!&quot;
+                :on-click #&#40;swap! click-2 inc&#41;}&#93;
+       &#91;:button {:on-click #&#40;re-frame/dispatch &#91;::events/change-name &quot;teste&quot;&#93;&#41;}
+        &quot;Change name&quot;&#93;
+       &#91;:button {:on-click #&#40;re-frame/dispatch &#91;::events/fetch&#93;&#41;}
+        &quot;Fetch users&quot;&#93;&#93;&#41;&#41;&#41;
 
-(defn wrapped-counter []
-  (re-frame/dispatch-sync [::events/init-db])
-  (fn []
-    [counting-component]))
+&#40;defn wrapped-counter &#91;&#93;
+  &#40;re-frame/dispatch-sync &#91;::events/init-db&#93;&#41;
+  &#40;fn &#91;&#93;
+    &#91;counting-component&#93;&#41;&#41;
 
-(defn countinghtml []
-  (dom-server/render-to-string [wrapped-counter]))
+&#40;defn countinghtml &#91;&#93;
+  &#40;dom-server/render-to-string &#91;wrapped-counter&#93;&#41;&#41;
 
-(defn ^:export countinghydrate []
-  (let [cb (.getElementById js/document "root")]
-    (react-dom/hydrate (reagent/as-element [wrapped-counter])
-                       cb)))
-</code></pre><p>Let's just add dummy event handlers for now.</p><p>There are two ways we can use this setup:</p><ul><li>Server-side rendering (as seen on NextJournal's post).</li><li>Generating static HTML pages to be hydrated on the build.</li></ul><h4 id="server-side-rendering">Server-side rendering</h4><p>We'll want to run <code>app.render</code> on each of the requests our app receives. I'll use reitit, ring, and jetty for this. To do so, we'll add the needed dependencies to our <code>deps.edn</code> file:</p><pre><code class="clj">metosin/reitit {:mvn/version "0.5.5"}
-ring/ring {:mvn/version "1.8.1"}
-</code></pre><p>It is now time to create our very basic handler/router:</p><pre><code class="clj">(ns app.server
-  (:require [app.render :as renderer]
-            [reitit.dev.pretty :as pretty]
-            [reitit.ring :as ring]
-            [reitit.ring.middleware.exception :as exception]
-            [ring.adapter.jetty :as jetty]))
+&#40;defn &#94;:export countinghydrate &#91;&#93;
+  &#40;let &#91;cb &#40;.getElementById js/document &quot;root&quot;&#41;&#93;
+    &#40;react-dom/hydrate &#40;reagent/as-element &#91;wrapped-counter&#93;&#41;
+                       cb&#41;&#41;&#41;
+</code></pre></p><p>Let's just add dummy event handlers for now.</p><p>There are two ways we can use this setup:</p><ul><li>Server-side rendering (as seen on NextJournal's post).</li><li>Generating static HTML pages to be hydrated on the build.</li></ul><h4>Server-side rendering</h4><p>We'll want to run <code>app.render</code> on each of the requests our app receives. I'll use reitit, ring, and jetty for this. To do so, we'll add the needed dependencies to our <code>deps.edn</code> file:<pre><code class="clj">metosin/reitit {:mvn/version &quot;0.5.5&quot;}
+ring/ring {:mvn/version &quot;1.8.1&quot;}
+</code></pre></p><p>It is now time to create our very basic handler/router:<pre><code class="clj">&#40;ns app.server
+  &#40;:require &#91;app.render :as renderer&#93;
+            &#91;reitit.dev.pretty :as pretty&#93;
+            &#91;reitit.ring :as ring&#93;
+            &#91;reitit.ring.middleware.exception :as exception&#93;
+            &#91;ring.adapter.jetty :as jetty&#93;&#41;&#41;
 
-(def router-options {:exception pretty/exception
-                     :middleware [exception/exception-middleware]})
+&#40;def router-options {:exception pretty/exception
+                     :middleware &#91;exception/exception-middleware&#93;}&#41;
 
-(defn server []
-  (ring/ring-handler
-    (ring/router
-      [""
-       ["/assets/*" (ring/create-resource-handler {:root "."})]
-       ["/" {:get (fn [_]
+&#40;defn server &#91;&#93;
+  &#40;ring/ring-handler
+    &#40;ring/router
+      &#91;&quot;&quot;
+       &#91;&quot;/assets/&#42;&quot; &#40;ring/create-resource-handler {:root &quot;.&quot;}&#41;&#93;
+       &#91;&quot;/&quot; {:get &#40;fn &#91;&#95;&#93;
                     {:body
-                       (-&gt; (renderer/build-page
-                             (renderer/context-build)
-                             "public/assets/clean.js"
-                             "app.component.countinghtml"
-                             {})
-                           (renderer/template-html-2))})}]])
-    router-options))
+                       &#40;-&gt; &#40;renderer/build-page
+                             &#40;renderer/context-build&#41;
+                             &quot;public/assets/clean.js&quot;
+                             &quot;app.component.countinghtml&quot;
+                             {}&#41;
+                           &#40;renderer/template-html-2&#41;&#41;}&#41;}&#93;&#93;&#41;
+    router-options&#41;&#41;
 
-(defn run-server []
-  (jetty/run-jetty (server) {:port 4000 :join? false}))
+&#40;defn run-server &#91;&#93;
+  &#40;jetty/run-jetty &#40;server&#41; {:port 4000 :join? false}&#41;&#41;
 
-(comment
-  (run-server))
-</code></pre><p>We'll now want to run <code>clj -M:cljs watch app</code> and navigate to <code>http://localhost:4000</code> in our browser, which will show us our prerendered and hydrated component/view. This sum's up how you would use Graal with shadow to server-side render your application.</p><h4 id="generating-static-htmls">Generating static HTMLs</h4><p>It is also possible to use Graal to create static HTML files for our application at build time. These HTML files can then be hydrated by the browser. To do so, we'll simply modify our build-hook so it generates the HTML using graal and then spits it to a file inside our public dir:</p><pre><code class="clj">(ns util.clean
-  (:require [app.render :as renderer]
-            [clojure.java.io :as io]
-            [clojure.string :as string]))
+&#40;comment
+  &#40;run-server&#41;&#41;
+</code></pre></p><p>We'll now want to run <code>clj -M:cljs watch app</code> and navigate to <code>http://localhost:4000</code> in our browser, which will show us our prerendered and hydrated component/view. This sum's up how you would use Graal with shadow to server-side render your application.</p><h4>Generating static HTMLs</h4><p>It is also possible to use Graal to create static HTML files for our application at build time. These HTML files can then be hydrated by the browser. To do so, we'll simply modify our build-hook so it generates the HTML using graal and then spits it to a file inside our public dir:</p><pre><code class="clj">&#40;ns util.clean
+  &#40;:require &#91;app.render :as renderer&#93;
+            &#91;clojure.java.io :as io&#93;
+            &#91;clojure.string :as string&#93;&#41;&#41;
 
-(defn hook
+&#40;defn hook
   {:shadow.build/stage :flush}
-  [build-state &amp; args]
-  (let [original (slurp (io/file "public/assets/graal.js"))
-        start (- (string/index-of original "function graaljs_async_not_supported()") 0)
-        to-replace (subs original start (+ start 664))]
-    (spit "public/assets/clean.js"
-          (-&gt; original
-              (string/replace to-replace " "))))
-  (let [html-to-output (-&gt; (renderer/build-page
-                             (renderer/context-build)
-                             "public/assets/clean.js"
-                             "app.component.countinghtml"
-                             {})
-                           (renderer/template-html-2))]
-    (spit "public/prerendered.html" html-to-output))
-  build-state)
-</code></pre><p>Running <code>clj -M:cljs watch app</code> and navigating to <code>http://localhost:8280/prerendered.html</code> will show us our prerendered and hydrated component/view.</p><h4 id="http-requests-from-within-the-client">HTTP requests from within the client</h4><p>I didn't show the code of the applications event handlers on purpose. You may have noticed I have an event called <code>fetch</code>. This event is supposed to fire a HTTP request, which would most probably be done by using <code>re-frame-http-fx</code> in your regular SPA.</p><p>The thing is: while using the <code>graaljs</code> target, you won't be able to even require <code>cljs-ajax</code>, which is used by <code>re-frame-http-fx</code>, since it uses <code>XMLHTTPRequest</code>, which isn't available. To solve this, I came up with a library that wraps <code>cljs-http</code> into a re-frame effect handler. Let's add it and create our <code>fetch</code> event.</p><p>We'll start by adding the following dependencies to our <code>deps.edn</code> file:</p><pre><code class="clj">cljs-http/cljs-http {:mvn/version "0.1.46"}
-org.clojars.arthurbarroso/re-frame-cljs-http {:mvn/version "0.1.0"}
-</code></pre><p>With the dependencies added, we will add/change our <code>fetch</code> event handler:</p><pre><code class="clj">(ns app.events
-  (:require [re-frame-cljs-http.http-fx]
-            [re-frame.core :as re-frame]))
+  &#91;build-state &amp; args&#93;
+  &#40;let &#91;original &#40;slurp &#40;io/file &quot;public/assets/graal.js&quot;&#41;&#41;
+        start &#40;- &#40;string/index-of original &quot;function graaljs&#95;async&#95;not&#95;supported&#40;&#41;&quot;&#41; 0&#41;
+        to-replace &#40;subs original start &#40;+ start 664&#41;&#41;&#93;
+    &#40;spit &quot;public/assets/clean.js&quot;
+          &#40;-&gt; original
+              &#40;string/replace to-replace &quot; &quot;&#41;&#41;&#41;&#41;
+  &#40;let &#91;html-to-output &#40;-&gt; &#40;renderer/build-page
+                             &#40;renderer/context-build&#41;
+                             &quot;public/assets/clean.js&quot;
+                             &quot;app.component.countinghtml&quot;
+                             {}&#41;
+                           &#40;renderer/template-html-2&#41;&#41;&#93;
+    &#40;spit &quot;public/prerendered.html&quot; html-to-output&#41;&#41;
+  build-state&#41;
+</code></pre><p>Running <code>clj -M:cljs watch app</code> and navigating to <code>http://localhost:8280/prerendered.html</code> will show us our prerendered and hydrated component/view. </p><h4>HTTP requests from within the client</h4><p>I didn't show the code of the applications event handlers on purpose. You may have noticed I have an event called <code>fetch</code>. This event is supposed to fire a HTTP request, which would most probably be done by using <code>re-frame-http-fx</code> in your regular SPA.</p><p>The thing is: while using the <code>graaljs</code> target, you won't be able to even require <code>cljs-ajax</code>, which is used by <code>re-frame-http-fx</code>, since it uses <code>XMLHTTPRequest</code>, which isn't available. To solve this, I came up with a library that wraps <code>cljs-http</code> into a re-frame effect handler. Let's add it and create our <code>fetch</code> event.</p><p>We'll start by adding the following dependencies to our <code>deps.edn</code> file:<pre><code class="clj">cljs-http/cljs-http {:mvn/version &quot;0.1.46&quot;}
+org.clojars.arthurbarroso/re-frame-cljs-http {:mvn/version &quot;0.1.0&quot;}
+</code></pre></p><p>With the dependencies added, we will add/change our <code>fetch</code> event handler:<pre><code class="clj">&#40;ns app.events
+  &#40;:require &#91;re-frame-cljs-http.http-fx&#93;
+            &#91;re-frame.core :as re-frame&#93;&#41;&#41;
 
-(re-frame/reg-event-fx
+&#40;re-frame/reg-event-fx
   ::init-db
-  (fn [_ _]
+  &#40;fn &#91;&#95; &#95;&#93;
     {:db
-       {:name "app"
+       {:name &quot;app&quot;
         :loading false
         :error nil
-        :users []}}))
+        :users &#91;&#93;}}&#41;&#41;
 
-(re-frame/reg-event-db
+&#40;re-frame/reg-event-db
   ::change-name
-  (fn [db [_ v]]
-    (assoc db :name v)))
+  &#40;fn &#91;db &#91;&#95; v&#93;&#93;
+    &#40;assoc db :name v&#41;&#41;&#41;
 
-(re-frame/reg-event-db
+&#40;re-frame/reg-event-db
   ::success
-  (fn [db [_ result]]
-    (assoc db :users (-&gt; result :body :data))))
+  &#40;fn &#91;db &#91;&#95; result&#93;&#93;
+    &#40;assoc db :users &#40;-&gt; result :body :data&#41;&#41;&#41;&#41;
 
-(re-frame/reg-event-db
+&#40;re-frame/reg-event-db
   ::failure
-  (fn [db [_ result]]
-    (assoc db :users [] :http-failure true :http-error result)))
+  &#40;fn &#91;db &#91;&#95; result&#93;&#93;
+    &#40;assoc db :users &#91;&#93; :http-failure true :http-error result&#41;&#41;&#41;
 
-(re-frame/reg-event-fx
+&#40;re-frame/reg-event-fx
   ::fetch
-  (fn [cofx [_ _]]
-    {:db (assoc (:db cofx) :b true)
+  &#40;fn &#91;cofx &#91;&#95; &#95;&#93;&#93;
+    {:db &#40;assoc &#40;:db cofx&#41; :b true&#41;
      :http-cljs {:method :get
-                 :url "https://reqres.in/api/users?page=2"
+                 :url &quot;https://reqres.in/api/users?page=2&quot;
                  :params {:testing true}
                  :timeout 8000
-                 :on-success [::success]
-                 :on-failure [::failure]}}))
-</code></pre><p>Now, accessing your application and clicking the <code>Fetch users</code> button should add the http results to your users list and show it at your component/view.</p><h3 id="second-setup-headless-chrome-using-etaoin">Second setup: Headless Chrome using Etaoin</h3><p>I won't describe much of this setup in here. <a href="https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0">Joel Sánchez's post</a> covers it pretty well. This setup has been by far one of the easiest to get up and running.  You can either set it up as he did in his post (which serves as a server-side rendered version of your application) or use it to generate static HTML's like I did in <a href="https://github.com/arthurbarroso/brundij/blob/main/src/clj/brundij/pre_render.clj">this file</a>.</p><p>It is important to add that my setup for generating these static htmls helps me achieve good performance results, but isn't the best and does something wrong: it calls <code>react-dom.render</code> instead of <code>react-dom.hydrate</code>. This happens because I am using a library that injects css at the dom asynchronously, which means the server-rendered html would never match the client's html.</p><h3 id="third-setup-building-prerender-scripts-using-shadow-cljs">Third setup: building prerender scripts using shadow-cljs</h3><p>Another possible approach is to create a shadow project that runs two separate builds: one for the regular browser build and another one that creates a node script for generating the prerendered html.</p><p>I'll use the same codebase we've used for the previous setups for simplicity's sake. To set up this method, I'll add two new build's to our <code>shadow-cljs.edn</code> and a new file to our source code:</p><pre><code class="clj">{:nrepl {:port 8777}
+                 :on-success &#91;::success&#93;
+                 :on-failure &#91;::failure&#93;}}&#41;&#41;
+</code></pre></p><p>Now, accessing your application and clicking the <code>Fetch users</code> button should add the http results to your users list and show it at your component/view.</p><h3>Second setup: Headless Chrome using Etaoin</h3><p>I won't describe much of this setup in here. <a href='https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0'>Joel Sánchez's post</a> covers it pretty well. This setup has been by far one of the easiest to get up and running.  You can either set it up as he did in his post (which serves as a server-side rendered version of your application) or use it to generate static HTML's like I did in <a href='https://github.com/arthurbarroso/brundij/blob/main/src/clj/brundij/pre_render.clj'>this file</a>.</p><p>It is important to add that my setup for generating these static htmls helps me achieve good performance results, but isn't the best and does something wrong: it calls <code>react-dom.render</code> instead of <code>react-dom.hydrate</code>. This happens because I am using a library that injects css at the dom asynchronously, which means the server-rendered html would never match the client's html.</p><h3>Third setup: building prerender scripts using shadow-cljs</h3><p>Another possible approach is to create a shadow project that runs two separate builds: one for the regular browser build and another one that creates a node script for generating the prerendered html.</p><p>I'll use the same codebase we've used for the previous setups for simplicity's sake. To set up this method, I'll add two new build's to our <code>shadow-cljs.edn</code> and a new file to our source code:<pre><code class="clj">{:nrepl {:port 8777}
 
  :deps true
 
  :dev-http
- {8280 "public"}
+ {8280 &quot;public&quot;}
 
  :builds
    {:app {:target :graaljs
-          :output-to "public/assets/graal.js"
-          :entries [app.component]
-          :jvm-opts ["-Xmx4G"]
+          :output-to &quot;public/assets/graal.js&quot;
+          :entries &#91;app.component&#93;
+          :jvm-opts &#91;&quot;-Xmx4G&quot;&#93;
           :modules
-          {:app {:init-fn [app.component/countinghtml]
-                 :prepend-js "./graal-bootstrap.js"}}
-          :build-hooks [(util.clean-static/static-hook)]}
+          {:app {:init-fn &#91;app.component/countinghtml&#93;
+                 :prepend-js &quot;./graal-bootstrap.js&quot;}}
+          :build-hooks &#91;&#40;util.clean-static/static-hook&#41;&#93;}
      :browser {:target     :browser
-               :output-dir "public/assets/js"
-               :asset-path "/js"
+               :output-dir &quot;public/assets/js&quot;
+               :asset-path &quot;/js&quot;
 
-               :jvm-opts ["-Xmx6G"]
+               :jvm-opts &#91;&quot;-Xmx6G&quot;&#93;
                :module-loader true
 
                :modules
                {:shared {}
-                :counting {:entries [app.component
+                :counting {:entries &#91;app.component
                                      app.events
                                      app.subs
                                      app.render-server
-                                     app.render-client]
+                                     app.render-client&#93;
                            :depends-on #{:shared}}}}
 
      :pre-render {:target :node-script
                   :main app.render-server/main-to-html
-                  :output-to "public/prerenderscript.js"}}}
-</code></pre><pre><code class="clj">(ns app.render-server
-  (:require [app.component :refer [counting-component]]
-            [app.events :as events]
-            [clojure.string :as string]
-            [re-frame.core :as re-frame]
-            [reagent.core :as r]
-            [reagent.dom.server :as dom-server]
-            ["react-dom" :as react-dom]
-            ["fs" :as fs]))
+                  :output-to &quot;public/prerenderscript.js&quot;}}}
+</code></pre></p><pre><code class="clj">&#40;ns app.render-server
+  &#40;:require &#91;app.component :refer &#91;counting-component&#93;&#93;
+            &#91;app.events :as events&#93;
+            &#91;clojure.string :as string&#93;
+            &#91;re-frame.core :as re-frame&#93;
+            &#91;reagent.core :as r&#93;
+            &#91;reagent.dom.server :as dom-server&#93;
+            &#91;&quot;react-dom&quot; :as react-dom&#93;
+            &#91;&quot;fs&quot; :as fs&#93;&#41;&#41;
 
-(defn ^:export main-hydrate []
-  (re-frame/dispatch-sync [::events/init-db])
-  (let [cb (.getElementById js/document "root")]
-    (react-dom/hydrate (r/as-element [counting-component])
-                       cb)))
+&#40;defn &#94;:export main-hydrate &#91;&#93;
+  &#40;re-frame/dispatch-sync &#91;::events/init-db&#93;&#41;
+  &#40;let &#91;cb &#40;.getElementById js/document &quot;root&quot;&#41;&#93;
+    &#40;react-dom/hydrate &#40;r/as-element &#91;counting-component&#93;&#41;
+                       cb&#41;&#41;&#41;
 
-(defn main-to-html []
-  (re-frame/dispatch-sync [::events/init-db])
-  (let [html-base "
+&#40;defn main-to-html &#91;&#93;
+  &#40;re-frame/dispatch-sync &#91;::events/init-db&#93;&#41;
+  &#40;let &#91;html-base &quot;
 &lt;html&gt;
   &lt;head&gt;
-    &lt;meta charset=\"utf-8\"&gt;
-    &lt;script src=\"/assets/js/shared.js\"&gt;&lt;/script&gt;
-    &lt;script src=\"/assets/js/counting.js\"&gt;&lt;/script&gt;
+    &lt;meta charset=\&quot;utf-8\&quot;&gt;
+    &lt;script src=\&quot;/assets/js/shared.js\&quot;&gt;&lt;/script&gt;
+    &lt;script src=\&quot;/assets/js/counting.js\&quot;&gt;&lt;/script&gt;
   &lt;/head&gt;
   &lt;body&gt;
-    &lt;div id=\"root\"&gt;${{html-string}}&lt;/div&gt;
+    &lt;div id=\&quot;root\&quot;&gt;${{html-string}}&lt;/div&gt;
   &lt;/body&gt;
-  &lt;script&gt;app.render_server.main_hydrate();&lt;/script&gt;
-&lt;/html&gt;"
-        pre-rendered-view (dom-server/render-to-string [counting-component])
-        final (clojure.string/replace html-base "${{html-string}}" pre-rendered-view)]
-    (fs/writeFileSync "public/counting-view.html" final)))
-</code></pre><p>The <code>browser</code> build target creates our typical browser build. This build is important because it makes it possible for us to import the needed javascript to our page (there are other ways of doing this, but you can probably figure it out). The <code>pre-render</code> build uses our new namespace's function to output a node script that will use <code>fs</code> to write a prerendered html to our public path.</p><p>Having the above set up, it is time to run <code>clj -M:cljs compile pre-render</code>, then <code>clj -M:cljs watch app</code> and, finally, navigate to <code>http://localhost:8280/counting-view.html</code></p><h3 id="fourth-setup-using-nbb">Fourth setup: using <code>nbb</code></h3><p><a href="https://github.com/borkdude/nbb">nbb</a> is a tool for <code>ad-hoc cljs scripting in node.js</code>. It allows us to run <code>Clojurescript</code> code as scripts. Let's prerender our application using <code>nbb</code>:</p><p>First, we'll want to modify our <code>counting-component</code> so it accepts an initial-data state. We'll talk about this initial state soon.</p><pre><code class="clj">(defn counting-component [initial-data]
-  (let [click-2 (reagent/atom 0)
-        name (re-frame/subscribe [::subs/name])
-        users (re-frame/subscribe [::subs/users])]
-    (fn []
-      [:div
-       "The atom " [:code "click-count"] " has value: "
-       @click-2 ". "
-       [:p "Name has value " (if @name @name (:name initial-data))]
-       [:p "Users:"
-        (for [user (if @users @users (:users initial-data))]
-          ^{:key (:id user)}
-          [:p (:first_name user)])]
-       [:p "Test 2"]
-       [:input {:type "button" :value "Click me!"
-                :on-click #(swap! click-2 inc)}]
-       [:button {:on-click #(re-frame/dispatch [::events/change-name "teste"])}
-        "Change name"]
-       [:button {:on-click #(re-frame/dispatch [::events/fetch])}
-        "Fetch users"]])))
-</code></pre><p>We will then want to modify our <code>app.render-server/main-to-html</code> function so it accepts initial data:</p><pre><code class="clj">(defn ^:export main-hydrate []
-  (re-frame/dispatch-sync [::events/init-db])
-  (let [cb (.getElementById js/document "root")]
-    (react-dom/hydrate (r/as-element [counting-component])
-                       cb)))
+  &lt;script&gt;app.render&#95;server.main&#95;hydrate&#40;&#41;;&lt;/script&gt;
+&lt;/html&gt;&quot;
+        pre-rendered-view &#40;dom-server/render-to-string &#91;counting-component&#93;&#41;
+        final &#40;clojure.string/replace html-base &quot;${{html-string}}&quot; pre-rendered-view&#41;&#93;
+    &#40;fs/writeFileSync &quot;public/counting-view.html&quot; final&#41;&#41;&#41;
+</code></pre><p>The <code>browser</code> build target creates our typical browser build. This build is important because it makes it possible for us to import the needed javascript to our page (there are other ways of doing this, but you can probably figure it out). The <code>pre-render</code> build uses our new namespace's function to output a node script that will use <code>fs</code> to write a prerendered html to our public path.</p><p>Having the above set up, it is time to run <code>clj -M:cljs compile pre-render</code>, then <code>clj -M:cljs watch app</code> and, finally, navigate to <code>http://localhost:8280/counting-view.html</code></p><h3>Fourth setup: using <code>nbb</code></h3><p><a href='https://github.com/borkdude/nbb'>nbb</a> is a tool for <code>ad-hoc cljs scripting in node.js</code>. It allows us to run <code>Clojurescript</code> code as scripts. Let's prerender our application using <code>nbb</code>:</p><p>First, we'll want to modify our <code>counting-component</code> so it accepts an initial-data state. We'll talk about this initial state soon.<pre><code class="clj">&#40;defn counting-component &#91;initial-data&#93;
+  &#40;let &#91;click-2 &#40;reagent/atom 0&#41;
+        name &#40;re-frame/subscribe &#91;::subs/name&#93;&#41;
+        users &#40;re-frame/subscribe &#91;::subs/users&#93;&#41;&#93;
+    &#40;fn &#91;&#93;
+      &#91;:div
+       &quot;The atom &quot; &#91;:code &quot;click-count&quot;&#93; &quot; has value: &quot;
+       @click-2 &quot;. &quot;
+       &#91;:p &quot;Name has value &quot; &#40;if @name @name &#40;:name initial-data&#41;&#41;&#93;
+       &#91;:p &quot;Users:&quot;
+        &#40;for &#91;user &#40;if @users @users &#40;:users initial-data&#41;&#41;&#93;
+          &#94;{:key &#40;:id user&#41;}
+          &#91;:p &#40;:first&#95;name user&#41;&#93;&#41;&#93;
+       &#91;:p &quot;Test 2&quot;&#93;
+       &#91;:input {:type &quot;button&quot; :value &quot;Click me!&quot;
+                :on-click #&#40;swap! click-2 inc&#41;}&#93;
+       &#91;:button {:on-click #&#40;re-frame/dispatch &#91;::events/change-name &quot;teste&quot;&#93;&#41;}
+        &quot;Change name&quot;&#93;
+       &#91;:button {:on-click #&#40;re-frame/dispatch &#91;::events/fetch&#93;&#41;}
+        &quot;Fetch users&quot;&#93;&#93;&#41;&#41;&#41;
+</code></pre></p><p>We will then want to modify our <code>app.render-server/main-to-html</code> function so it accepts initial data:<pre><code class="clj">&#40;defn &#94;:export main-hydrate &#91;&#93;
+  &#40;re-frame/dispatch-sync &#91;::events/init-db&#93;&#41;
+  &#40;let &#91;cb &#40;.getElementById js/document &quot;root&quot;&#41;&#93;
+    &#40;react-dom/hydrate &#40;r/as-element &#91;counting-component&#93;&#41;
+                       cb&#41;&#41;&#41;
 
-(defn main-to-html [initial-data]
-  (re-frame/dispatch-sync [::events/init-db])
-  (let [html-base "
+&#40;defn main-to-html &#91;initial-data&#93;
+  &#40;re-frame/dispatch-sync &#91;::events/init-db&#93;&#41;
+  &#40;let &#91;html-base &quot;
 &lt;html&gt;
   &lt;head&gt;
-    &lt;meta charset=\"utf-8\"&gt;
-    &lt;script src=\"/assets/js/shared.js\"&gt;&lt;/script&gt;
-    &lt;script src=\"/assets/js/counting.js\"&gt;&lt;/script&gt;
+    &lt;meta charset=\&quot;utf-8\&quot;&gt;
+    &lt;script src=\&quot;/assets/js/shared.js\&quot;&gt;&lt;/script&gt;
+    &lt;script src=\&quot;/assets/js/counting.js\&quot;&gt;&lt;/script&gt;
   &lt;/head&gt;
   &lt;body&gt;
-    &lt;div id=\"root\"&gt;${{html-string}}&lt;/div&gt;
+    &lt;div id=\&quot;root\&quot;&gt;${{html-string}}&lt;/div&gt;
   &lt;/body&gt;
-  &lt;script&gt;app.render_server.main_hydrate();&lt;/script&gt;
-&lt;/html&gt;"
-        pre-rendered-view (dom-server/render-to-string [counting-component initial-data])
-        final (clojure.string/replace html-base "${{html-string}}" pre-rendered-view)]
-    (fs/writeFileSync "public/counting-view.html" final)))
-</code></pre><p>The nbb script file at the project's root:</p><pre><code class="clj">(ns re-frame.core)
+  &lt;script&gt;app.render&#95;server.main&#95;hydrate&#40;&#41;;&lt;/script&gt;
+&lt;/html&gt;&quot;
+        pre-rendered-view &#40;dom-server/render-to-string &#91;counting-component initial-data&#93;&#41;
+        final &#40;clojure.string/replace html-base &quot;${{html-string}}&quot; pre-rendered-view&#41;&#93;
+    &#40;fs/writeFileSync &quot;public/counting-view.html&quot; final&#41;&#41;&#41;
+</code></pre></p><p>The nbb script file at the project's root:<pre><code class="clj">&#40;ns re-frame.core&#41;
 
-(defn reg-event-db [&amp; _args])
-(defn reg-event-fx [&amp; _args])
-(defn reg-sub [&amp; _args])
-(defn subscribe [&amp; _args] (atom false))
-(defn dispatch [&amp; _args])
-(defn dispatch-sync [&amp; _args])
+&#40;defn reg-event-db &#91;&amp; &#95;args&#93;&#41;
+&#40;defn reg-event-fx &#91;&amp; &#95;args&#93;&#41;
+&#40;defn reg-sub &#91;&amp; &#95;args&#93;&#41;
+&#40;defn subscribe &#91;&amp; &#95;args&#93; &#40;atom false&#41;&#41;
+&#40;defn dispatch &#91;&amp; &#95;args&#93;&#41;
+&#40;defn dispatch-sync &#91;&amp; &#95;args&#93;&#41;
 
-(ns re-frame-cljs-http.http-fx)
+&#40;ns re-frame-cljs-http.http-fx&#41;
 
-(ns cljs-http)
+&#40;ns cljs-http&#41;
 
-(ns render
-  (:require [app.render-server :refer [main-to-html]]))
+&#40;ns render
+  &#40;:require &#91;app.render-server :refer &#91;main-to-html&#93;&#93;&#41;&#41;
 
-(defn render-server []
-  (main-to-html {:name "app" :users []}))
+&#40;defn render-server &#91;&#93;
+  &#40;main-to-html {:name &quot;app&quot; :users &#91;&#93;}&#41;&#41;
 
-(println (render-server))
-</code></pre><p>You may have noticed something weird here. We're re-defining <code>re-frame.core</code>'s namespace. This is needed because <a href="https://github.com/borkdude/nbb/issues/79"><code>nbb</code> doesn't support re-frame as of now</a>, so we simply "mock" those to pre-render and this is also the reason we need initial data. Our initial data must match the data that will be inserted at our re-frame's <code>db</code> so React's prerendered DOM matches the DOM React's hydrate expects. We also re-define <code>cljs-http</code> and <code>re-frame-cljs-http.http-fx</code> namespaces to avoid having to use replace-deps</p><p><code>nbb</code> supports adding clojure dependencies, but re-frame depends on a few <code>goog</code> classes that aren't defined on nbb right now.</p><p>Since our component/view is outside of our script, we'll need to pass our classpath to <code>nbb</code> and run it:</p><pre><code class="bash">classpath="$(clojure -A:nbb -Spath -Sdeps '{}')"
-nbb --classpath "$classpath" script.cljs
-</code></pre><p>You should now be able to run <code>clj -M:cljs watch browser</code> and visit <code>http://localhost:8280/counting-view.html</code> to check the nbb-preredered page.</p><h3 id="wrapping-up">Wrapping up</h3><p>It was pretty fun to try all of this stuff. I ended up learning more about React, Clojurescript and the web. I am probably going to try using the <code>static html generation</code> graal setup for my next project since it gets hooked to shadow's build without having to spin up a node server.</p><p>I am also pretty sure there are much better setups out there, but I wanted to try and make things on my own. If you're looking for production-ready stuff you're better off asking people at Clojurians' slack.</p><p>If you're planning to adopt any of the prerendering setups above, you'd probably take a few things into account:</p><ul><li>Every of these setups is <strong>highly experimental</strong></li><li>You most probably wont be able to use <code>css-in-js</code> solutions.</li><li>The third step will require some more boilerplate code/tooling if you need to use "esm only" libraries.</li><li>The decision to use static htmls vs server-side rendered html should be based on your application's performance and needs.</li><li>The etaoin setup is still probably the easiest one.</li><li><a href="https://github.com/borkdude/nbb/pull/87">You can make <code>nbb</code> pull requests to add stuff that isn't yet available</a>.</li><li>Hacking shadow's <code>graaljs</code> target to output async code isn't the best approach.</li></ul>
-</div>
-
-<div id="post-tags">
-    <b>Tags: </b>
-    
-    <a href="/re-frame.html">re-frame</a>
-    
-    <a href="/clojure.html">clojure</a>
-    
-    <a href="/reagent.html">reagent</a>
-    
-    <a href="/prerender.html">prerender</a>
-    
-    <a href="/shadow-cljs.html">shadow-cljs</a>
-    
-    <a href="/react.html">react</a>
-    
-    <a href="/clojurescript.html">clojurescript</a>
-    
-</div>
-
-
-    <div id="prev-next">
-        
-        
-        <a class="right" href="/testing-the-dom-using-shadow-and-reagent.html">Testing the DOM using shadow-cljs and Reagent &raquo;</a>
-        
+&#40;println &#40;render-server&#41;&#41;
+</code></pre></p><p>You may have noticed something weird here. We're re-defining <code>re-frame.core</code>'s namespace. This is needed because <a href='https://github.com/borkdude/nbb/issues/79'><code>nbb</code> doesn't support re-frame as of now</a>, so we simply "mock" those to pre-render and this is also the reason we need initial data. Our initial data must match the data that will be inserted at our re-frame's <code>db</code> so React's prerendered DOM matches the DOM React's hydrate expects. We also re-define <code>cljs-http</code> and <code>re-frame-cljs-http.http-fx</code> namespaces to avoid having to use replace-deps</p><p><code>nbb</code> supports adding clojure dependencies, but re-frame depends on a few <code>goog</code> classes that aren't defined on nbb right now.</p><p>Since our component/view is outside of our script, we'll need to pass our classpath to <code>nbb</code> and run it:<pre><code class="bash">classpath=&quot;$&#40;clojure -A:nbb -Spath -Sdeps '{}'&#41;&quot;
+nbb --classpath &quot;$classpath&quot; script.cljs
+</code></pre></p><p>You should now be able to run <code>clj -M:cljs watch browser</code> and visit <code>http://localhost:8280/counting-view.html</code> to check the nbb-preredered page.</p><h3>Wrapping up</h3><p>It was pretty fun to try all of this stuff. I ended up learning more about React, Clojurescript and the web. I am probably going to try using the <code>static html generation</code> graal setup for my next project since it gets hooked to shadow's build without having to spin up a node server.</p><p>I am also pretty sure there are much better setups out there, but I wanted to try and make things on my own. If you're looking for production-ready stuff you're better off asking people at Clojurians' slack.</p><p>If you're planning to adopt any of the prerendering setups above, you'd probably take a few things into account:</p><ul><li>Every of these setups is <strong>highly experimental</strong></li><li>You most probably wont be able to use <code>css-in-js</code> solutions.</li><li>The third step will require some more boilerplate code/tooling if you need to use "esm only" libraries.</li><li>The decision to use static htmls vs server-side rendered html should be based on your application's performance and needs.</li><li>The etaoin setup is still probably the easiest one.</li><li><a href='https://github.com/borkdude/nbb/pull/87'>You can make <code>nbb</code> pull requests to add stuff that isn't yet available</a>.</li><li>Hacking shadow's <code>graaljs</code> target to output async code isn't the best approach.</li></ul>
     </div>
-
-    
-
-
 </div>
 
             </div>
@@ -505,11 +462,15 @@ nbb --classpath "$classpath" script.cljs
         <div>
         </div>
     </div>
-    <footer>Copyright &copy; 2021 Arthur Barroso
-        <p style="text-align: center;margin: 0;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+    <footer>Copyright &copy; 2021 Arthur Barroso</footer>
 </div>
-<script>hljs.highlightAll();</script>
-
-
+<script src="/js/clojure_highlighter.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
+          hljs.highlightElement(el);
+      });
+  });
+</script>
 </body>
 </html>
