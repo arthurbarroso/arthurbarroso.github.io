@@ -61,13 +61,11 @@
 </div>
 <script src="/js/clojure_highlighter.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
-            console.log(el)
-            hljs.highlightElement(el);
-        });
-    });
+  document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
+          hljs.highlightElement(el);
+      });
+  });
 </script>
-<!-- <script>hljs.highlightAll();</script> -->
 </body>
 </html>

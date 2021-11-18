@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
     <link href="css/screen.css" rel="stylesheet" type="text/css" />
-    <link href="css/cm.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
@@ -467,13 +466,11 @@ nbb --classpath &quot;$classpath&quot; script.cljs
 </div>
 <script src="/js/clojure_highlighter.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
-            console.log(el)
-            hljs.highlightElement(el);
-        });
-    });
+  document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
+          hljs.highlightElement(el);
+      });
+  });
 </script>
-<!-- <script>hljs.highlightAll();</script> -->
 </body>
 </html>
