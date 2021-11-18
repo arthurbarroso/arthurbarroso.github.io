@@ -6,9 +6,14 @@
             [slugger.core :as slug]
             [tick.core :as t]))
 
+(defn now []
+  (->> (t/zoned-date-time)
+       (t/format (t/formatter "yyyy-MM-dd"))))
+
 (def config {:archives-uri "archives"
              :author "Arthur Barroso"
-             :title "((arthur barroso))"})
+             :title "((arthur barroso))"
+             :last-mod (now)})
 
 (defn filter-post [post]
   (string/includes? (.getName post) ".md"))
@@ -92,18 +97,18 @@
     ".html")
    html-content))
 
-(defn render-archives []
-  (let [posts (reverse (sort-by :date (get-posts)))]
+(defn render-archives [posts]
+  (let [post-list (reverse (sort-by :date posts))]
     (spit "./docs/archives.html"
         (selmer/render-file "archives.html"
-               (merge config {:posts posts})))))
+               (merge config {:posts post-list})))))
 
-(defn render-home []
-  (let [posts (reverse (sort-by :date (get-posts)))]
+(defn render-home [posts]
+  (let [post-list (reverse (sort-by :date posts))]
     (spit "./docs/index.html"
         (selmer/render-file "home.html"
                 (merge config
-                       {:posts posts})))))
+                       {:posts post-list})))))
 
 (defn render-about []
   (let [raw-content (slurp "./pages/about.md")
@@ -142,19 +147,18 @@
      (spit "./docs/sitemap.xml"
            (selmer/render-file "sitemap.xml"
                                {:posts posts
-                                :last-mod "2021-11-18"}))))
-
+                                :last-mod (:last-mod config)}))))
 
 (defn render-all [_]
   (let [posts (get-posts)]
     (doseq [p posts]
-      (save-post p (render-post p))))
-  (render-archives)
-  (render-404)
-  (render-about)
-  (render-collage)
-  (render-home)
-  (create-sitemap))
+      (save-post p (render-post p)))
+    (render-archives posts)
+    (render-home posts)
+    (render-404)
+    (render-about)
+    (render-collage)
+    (create-sitemap)))
 
 (comment
   (render-all {}))
