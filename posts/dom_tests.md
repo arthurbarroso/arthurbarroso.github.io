@@ -9,6 +9,8 @@ I've been recently trying to build [brundij](https://github.com/arthurbarroso/br
 
 Everything was going pretty smoothly until I needed to run DOM tests, which seemed like a big mistery to me -it seemed like most CLJS developers were only using Cypress and the [only post I could find talking about `react-testing-library` in clojurescript](https://francisvitullo.medium.com/a-way-of-testing-views-in-clojurescript-apps-98aaf57c5c2a) was two years old. All of this led me into creating this post, in which, I am going to try to help Clojurescript beginners, like me, run DOM tests on their shadow-cljs + reagent applications.
 
+This post should be enough to get yourself a simple Clojurescript testing suite up and running.
+
 ### First try
 
 We'll start with a very basic reagent + shadow-cljs project. This will be done by running `lein new re-frame app` for simplicity's sake. With the app ready to go, we will also create a simple button component. It will look like this:
