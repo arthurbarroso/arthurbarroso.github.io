@@ -456,20 +456,6 @@ org.clojars.arthurbarroso/re-frame-cljs-http {:mvn/version &quot;0.1.0&quot;}
 nbb --classpath &quot;$classpath&quot; script.cljs
 </code></pre></p><p>You should now be able to run <code>clj -M:cljs watch browser</code> and visit <code>http://localhost:8280/counting-view.html</code> to check the nbb-preredered page.</p><h3>Wrapping up</h3><p>It was pretty fun to try all of this stuff. I ended up learning more about React, Clojurescript and the web. I am probably going to try using the <code>static html generation</code> graal setup for my next project since it gets hooked to shadow's build without having to spin up a node server.</p><p>I am also pretty sure there are much better setups out there, but I wanted to try and make things on my own. If you're looking for production-ready stuff you're better off asking people at Clojurians' slack.</p><p>If you're planning to adopt any of the prerendering setups above, you'd probably take a few things into account:</p><ul><li>Every of these setups is <strong>highly experimental</strong></li><li>You most probably wont be able to use <code>css-in-js</code> solutions.</li><li>The third step will require some more boilerplate code/tooling if you need to use "esm only" libraries.</li><li>The decision to use static htmls vs server-side rendered html should be based on your application's performance and needs.</li><li>The etaoin setup is still probably the easiest one.</li><li><a href='https://github.com/borkdude/nbb/pull/87'>You can make <code>nbb</code> pull requests to add stuff that isn't yet available</a>.</li><li>Hacking shadow's <code>graaljs</code> target to output async code isn't the best approach.</li></ul>
     </div>
-    
-    <div id="post-tags">
-        <b>Tags: </b>
-        
-        <a href="">teste</a>
-        
-        <a href=""> um</a>
-        
-        <a href=""> dois</a>
-        
-        <a href=""> três</a>
-        
-    </div>
-    
 </div>
 
             </div>
