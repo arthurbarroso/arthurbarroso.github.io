@@ -9,7 +9,7 @@ Há algum tempo tenho tentado desenvolver [brundij](https://github.com/arthurbar
 
 Tudo corria bem até o momento em que precisei rodar testes relacionados à DOM: aparentemente poucos dos desenvolvedores usando Clojurescript faziam testes no estilo react-testing-library. O único post que achei falando sobre testes de DOM/componentes/telas era de dois anos atrás. TUdo isso me levou a criar esse post, em que tentarei ajudar iniciantes em Clojurescript a fazer esse tipo de testes em suas aplicações `shadow-cljs` e `reagent`.
 
-# Primeira tentativa:
+### Primeira tentativa:
 Iniciaremos com um projeto básico utilizando shadow-cljs e reagent. Para criar o projeto, podemos usar o leiningen rodando o comando `lein new re-frame app`. Com o app inicializado, iremos criar nosso primeiro componente -um botão simples:
 ```clj
 ;;src/app/components/button.cljs
@@ -51,7 +51,7 @@ Se rodarmos `npx shadow-cljs watch test`, teremos nosso ambiente de testes rodan
 
 Esse erro é causado pela ausência de um element `div` com o id `app` dentro de nosso arquivo HTML de teste (que é utilizado pelo shadow para montar o ambiente de testes). Poderíamos modificar esse arquivo manualmente adicionando essa div lá, mas abordaremos esse problema de uma outra forma.
 
-# Renderizando
+### Renderizando
 Como visto acima, precisamos ter uma `div` com o id `app` em nossa DOM antes de rodar os testes. UMa maneira de fazer isso sem editar diretamente o arquivo HTML dos testes é usando a função `use-fixtures` (disponível em clojure.test e cljs.test). Podemos então definir algumas funções que devem ser executadas antes de nossos testes. Vamos criar uma fixture que inserirá a div que precisamos em nossa DOM antes de rodar nossos test cases:
 
 ```clj
@@ -80,7 +80,7 @@ Como visto acima, precisamos ter uma `div` com o id `app` em nossa DOM antes de 
 ```
 A função `create-app-element` nos será muito util e a utilizaremos em cada um de nossos arquivos de teste. Ela basicamente cria uma div, seta o id desta div como `app` e aplica `style= display:none` para que esse elemento não fique aparecendo na tela de testes do shadow-cljs (a que vimos acessando `localhost:8021`). Isso deve ser o suficiente para rodarmos o nosso teste sem recebermos erros quando acessarmos o report de testes.
 
-# Fazendo asserções sobre os componentes
+### Fazendo asserções sobre os componentes
 Com os componentes renderizando nos testes, podemos agora fazer asserções sobre eles. Suponha que o objetivo seja testar que o botão realmente renderiza: podemos fazer isso de várias maneiras, sendo uma delas checar se a prop `text` que esse botão recebe acaba sendo renderizada na DOM:
 ```clj
 (deftest button-component-test
@@ -134,7 +134,7 @@ Com o `react-dom/test-utils`, podemos simular eventos de um usuário e checar se
 
 O teste usa um `atom` do `reagent`, mas poderia usar re-frame, por exemplo.
 
-# Limpando a DOM entre testes
+### Limpando a DOM entre testes
 O setup atual tem um problema: não limpamos a DOM entre os testes. Isso significa que podem ocorrer conflitos entre cada um de nossos `deftest`. Podemos resolver isso, mas não com o código que temos atualmente: como usamos `reagent-dom/render` para renderizar nossos componentes na div com id `app`, não temos esses componentes como "filhos" da div, e sim a div como o componente (o componente toma o lugar da div).
 
 O primeiro passo para podermos limpar a DOM com esse setup será definir uma função `append-container`. Essa função receberá um elemento destino e um id como argumentos. Com esses dados em mãos, ela criará uma div com o id que recebeu e fará com que essa div seja "filha" do elemento destino. Definiremos então outra função chamada `dom-cleanup!`, que será uma fixture e que utilizará a função `clojure.browser.dom/remove-children`, que remove os elementos "filhos" de um elemento escolhido.
@@ -190,7 +190,7 @@ Com essas funções em mãos, apenas precisamos garantir que nossos testes usem 
         (is (= 2 @ra))))))
 ```
 
-# Usando o Karma
+### Usando o Karma
 Para rodar os testes acima numa CI, será necessário usar o [karma](https://karma-runner.github.io/latest/index.html). Karma é um test runner para javascript e é recomendado pelo user guide do `shadow-cljs`. Para usá-lo, vamos adicionar as dependências do karma às nossas dependências de desenvolvimento no nosso `package.json`, faremos algumas alterações em nosso `shadow-cljs.edn` e criaremos um arquivo  `karma.conf.js`.
 
 ```json
