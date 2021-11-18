@@ -1,21 +1,16 @@
 Author: Arthur Barroso
-Title: Testing the DOM using shadow-cljs and Reagent
-Link: testing the dom using shadow and reagent
+Title: Testando a DOM usando shadow-cljs e Reagent
+Link: Testando a DOM usando shadow-cljs e Reagent
 Description: Testing reagent dom components and screens using shadow-cljs and Clojurescript
 Date: 2021-09-13
 Tags: shadow-cljs, reagent, tests, dom, react, clojurescript
 
-I've been recently trying to build [brundij](https://github.com/arthurbarroso/brundij), an open-source tool for squad health checks. I ended up deciding on using Clojure and Clojurescript to build it (I've been learning clojure for a few months already but feel like a complete beginner, so I thought building something might help me grasp some stuff). I also decided to use `shadow-cljs` to set up my project.
+Há algum tempo tenho tentado desenvolver [brundij](https://github.com/arthurbarroso/brundij), uma ferramenta open-source para fazer squad health checks. Eu decidi usar Clojure e Clojurescript para construí-la (já estava estudando Clojure por alguns meses, mas ainda me sentia um completo iniciante, então decidi que construir uma ferramenta usando Clojure poderia me ajudar a entender algumas coisas). Também decidi usar `shadow-cljs` para o setup do projeto.
 
-Everything was going pretty smoothly until I needed to run DOM tests, which seemed like a big mistery to me -it seemed like most CLJS developers were only using Cypress and the [only post I could find talking about `react-testing-library` in clojurescript](https://francisvitullo.medium.com/a-way-of-testing-views-in-clojurescript-apps-98aaf57c5c2a) was two years old. All of this led me into creating this post, in which, I am going to try to help Clojurescript beginners, like me, run DOM tests on their shadow-cljs + reagent applications.
+Tudo corria bem até o momento em que precisei rodar testes relacionados à DOM: aparentemente poucos dos desenvolvedores usando Clojurescript faziam testes no estilo react-testing-library. O único post que achei falando sobre testes de DOM/componentes/telas era de dois anos atrás. TUdo isso me levou a criar esse post, em que tentarei ajudar iniciantes em Clojurescript a fazer esse tipo de testes em suas aplicações `shadow-cljs` e `reagent`.
 
-This post should be enough to get yourself a simple Clojurescript testing suite up and running.
-
-> A PT-BR version of this post is available [here](./translations/testando-a-dom-usando-shadow-cljs-e-reagent.html)
-
-### First try
-
-We'll start with a very basic reagent + shadow-cljs project. This will be done by running `lein new re-frame app` for simplicity's sake. With the app ready to go, we will also create a simple button component. It will look like this:
+# Primeira tentativa:
+Iniciaremos com um projeto básico utilizando shadow-cljs e reagent. Para criar o projeto, podemos usar o leiningen rodando o comando `lein new re-frame app`. Com o app inicializado, iremos criar nosso primeiro componente -um botão simples:
 ```clj
 ;;src/app/components/button.cljs
 (ns app.components.button)
@@ -27,9 +22,9 @@ We'll start with a very basic reagent + shadow-cljs project. This will be done b
     :on-click #(on-click)}
    text])
 ```
-This is a very basic dummy component. It receives an `on-click` handler, a `text`, and a `disabled` boolean check as properties. With our button set-up, let's try rendering it in our tests. We'll first need to add the following build specification to `shadow-cljs.edn` and then create our test file
+
+Esse é um componente *bem* básico: ele recebe um handler/função `on-click`, um texto a ser exibido (`text`) e um booleano `disabled`. Com o botão criado, vamos tentar renderizá-lo em nossos testes. Para isso, precisamos primeiro criar uma configuração de build de testes em nosso `shadow-cljs.edn` e depois sim escrever um teste:
 ```clj
-;;shadow-cljs.edn
   :test {:target :browser-test
          :test-dir "resources/public/js/test"
          :devtools  {:http-port          8021
@@ -42,7 +37,7 @@ This is a very basic dummy component. It receives an `on-click` handler, a `text
   (:require [app.components.button :refer [button]]
             [cljs.test :refer-macros [deftest is testing]]
             [reagent.dom :as rdom]))
-
+            
 (deftest button-component-test
   (testing "Renders correctly"
     (rdom/render [button {:on-click #(println "hi")
@@ -50,16 +45,15 @@ This is a very basic dummy component. It receives an `on-click` handler, a `text
                           :disabled false}]
                  (.getElementById js/document "app"))
     (is (= true true))))
-
 ```
 
-If we run `npx shadow-cljs watch test` our test environment will be up and running. Assuming you've set up the test build config the same way I did, you'll be able to navigate to `localhost:8021` and check that our test is failing with an uncaught exception:
-`Error: target container is not a DOM element`
+Se rodarmos `npx shadow-cljs watch test`, teremos nosso ambiente de testes rodando. Se você configurou a build de testes do mesmo jeito que eu, você poderá navegar até `localhost:8021` e checar que nosso teste está falhando com uma "uncaught exception": `target container is not a DOM element`
 
-This happens because there is no `div id="app"` inside our test html file. We could change its content and insert a `div` with the id `app` directly to the file, but we'll do this another way.
+Esse erro é causado pela ausência de um element `div` com o id `app` dentro de nosso arquivo HTML de teste (que é utilizado pelo shadow para montar o ambiente de testes). Poderíamos modificar esse arquivo manualmente adicionando essa div lá, mas abordaremos esse problema de uma outra forma.
 
-### Getting things to render
-As seen above, we need to somehow have a div with the id `app` in our DOM before running the tests. A nice way of dealing with this is by using Clojurescript's `use-fixtures` -using it we'd be able to define a fixture that runs only once and uses javascript to create the div we need. Let's take a look at how we're able to do this:
+# Renderizando
+Como visto acima, precisamos ter uma `div` com o id `app` em nossa DOM antes de rodar os testes. UMa maneira de fazer isso sem editar diretamente o arquivo HTML dos testes é usando a função `use-fixtures` (disponível em clojure.test e cljs.test). Podemos então definir algumas funções que devem ser executadas antes de nossos testes. Vamos criar uma fixture que inserirá a div que precisamos em nossa DOM antes de rodar nossos test cases:
+
 ```clj
 ;;test/app/button_test.cljs
 (ns app.button-test
@@ -84,11 +78,10 @@ As seen above, we need to somehow have a div with the id `app` in our DOM before
                  (.getElementById js/document "app"))
     (is (= true true))))
 ```
-We'll use this `create-app-element` function for each of our test files. It'll ensure there is the div with the id `app`. It basically creates a new div, set it's id to `app`, and set its `display` css property to `none`, so the components don't end up showing on our shadow test report page. This setup should be enough to get our tests running without the previous failure.
+A função `create-app-element` nos será muito util e a utilizaremos em cada um de nossos arquivos de teste. Ela basicamente cria uma div, seta o id desta div como `app` e aplica `style= display:none` para que esse elemento não fique aparecendo na tela de testes do shadow-cljs (a que vimos acessando `localhost:8021`). Isso deve ser o suficiente para rodarmos o nosso teste sem recebermos erros quando acessarmos o report de testes.
 
-### Making assertions about components
-With components rendering in our tests, we're now able to make assertions about them. Let's say we want to check whether our button component actually renders. We could check if the `text` prop is being rendered within the button component using the following test
-
+# Fazendo asserções sobre os componentes
+Com os componentes renderizando nos testes, podemos agora fazer asserções sobre eles. Suponha que o objetivo seja testar que o botão realmente renderiza: podemos fazer isso de várias maneiras, sendo uma delas checar se a prop `text` que esse botão recebe acaba sendo renderizada na DOM:
 ```clj
 (deftest button-component-test
   (testing "Renders correctly"
@@ -102,9 +95,9 @@ With components rendering in our tests, we're now able to make assertions about 
       (is (= "button" (.-textContent button))))))
 ```
 
-This is a dummy test. We're simply checking if things are rendering. If we really want to test things and their behaviors we'd need to click buttons, change inputs and such. This is where `react-dom/test-utils` comes in.
+Esse, no entanto, não é um bom teste: ele simplesmente checa se o componente renderiza. Para testarmos os comportamentos de nossos componentes precisamos interagir com eles como um usuário faria, e é aqui que usaremos `react-dom/test-utils`.
 
-With `react-dom/test-utils`, we're able to simulate user events and check whether our button uses the `on-click` handler property it receives. An example of test using `react-dom/test-utils` would look like the following:
+Com o `react-dom/test-utils`, podemos simular eventos de um usuário e checar se esses eventos trazem mudanças para nossos componentes. No nosso caso, podemos clicar no botão e checar se o `on-click` dele é ativado:
 ```clj
 (ns app.button-test
   (:require [app.components.button :refer [button]]
@@ -138,12 +131,14 @@ With `react-dom/test-utils`, we're able to simulate user events and check whethe
         ;; react-dom/test-utils simulates a user click
         (is (= 2 @ra)))))) ;; ra's value should've been incremented
 ```
-This example uses a reagent atom to check whether on-click has been called. This could also be done using re-frame, for example.
 
-### Cleaning up the DOM in between tests
-Let's say we want to clean up the DOM between each `deftest`. This is achievable, but not with the code we currently have. Since we're using `reagent-dom/render` to render stuff, we cant simply delete our `app`'s div children -our components aren't being rendered as children, the whole `app` div is becoming our components. We can fix this.
+O teste usa um `atom` do `reagent`, mas poderia usar re-frame, por exemplo.
 
-Our first step will be defining our `append-container` function. This function will take a target element and an `id` as arguments. It will then create a div with that `id` as the `target`'s children. We will then define our `dom-cleanup!` fixture, which will use's `clojure.browser.dom` `remove-children` function, which simply removes a DOM element's children.
+# Limpando a DOM entre testes
+O setup atual tem um problema: não limpamos a DOM entre os testes. Isso significa que podem ocorrer conflitos entre cada um de nossos `deftest`. Podemos resolver isso, mas não com o código que temos atualmente: como usamos `reagent-dom/render` para renderizar nossos componentes na div com id `app`, não temos esses componentes como "filhos" da div, e sim a div como o componente (o componente toma o lugar da div).
+
+O primeiro passo para podermos limpar a DOM com esse setup será definir uma função `append-container`. Essa função receberá um elemento destino e um id como argumentos. Com esses dados em mãos, ela criará uma div com o id que recebeu e fará com que essa div seja "filha" do elemento destino. Definiremos então outra função chamada `dom-cleanup!`, que será uma fixture e que utilizará a função `clojure.browser.dom/remove-children`, que remove os elementos "filhos" de um elemento escolhido.
+
 ```clj
 (ns app.button-test
   (:require [app.components.button :refer [button]]
@@ -175,7 +170,7 @@ Our first step will be defining our `append-container` function. This function w
 (use-fixtures :each dom-cleanup!)
 ```
 
-Our tests will stay pretty much the same, except we'll render them using `append-container` and will query the DOM for them using the `id` we supply to `append-container`
+Com essas funções em mãos, apenas precisamos garantir que nossos testes usem a função `append-container` para renderizar os componentes:
 ```clj
 (deftest button-component-click-test
   (testing "Uses the supplied `on-click` property"
@@ -195,10 +190,9 @@ Our tests will stay pretty much the same, except we'll render them using `append
         (is (= 2 @ra))))))
 ```
 
-### Setting up Karma
-In order to run the tests we've just created in a CI, we'll need [karma](https://karma-runner.github.io/latest/index.html). Karma is a javascript test runner and is recommended by the shadow-clj's user guide. Let's set it up. To do so, we'll add karma's dependencies to the `package.json` `devDependencies`, tweak our `shadow-cljs.edn` file a little and create a `karma.conf.js` file. Let's go ahead.
+# Usando o Karma
+Para rodar os testes acima numa CI, será necessário usar o [karma](https://karma-runner.github.io/latest/index.html). Karma é um test runner para javascript e é recomendado pelo user guide do `shadow-cljs`. Para usá-lo, vamos adicionar as dependências do karma às nossas dependências de desenvolvimento no nosso `package.json`, faremos algumas alterações em nosso `shadow-cljs.edn` e criaremos um arquivo  `karma.conf.js`.
 
-We'll need `karma`, `karma-cljs-test` (so we can write our tests using `cljs`) and `karma-chrome-launcher`, so karma spins up a chrome instance and runs our browser tests.
 ```json
 //package.json
 
@@ -211,14 +205,14 @@ We'll need `karma`, `karma-cljs-test` (so we can write our tests using `cljs`) a
  }
 }
 ```
-We'll add a `:ci` build configuration in our shadow-cljs.edn file.
-```edn
+
+```clj
  ;;shadow-cljs.edn
   :ci {:target :karma
        :output-to "target/ci.js"}}}
 ```
 
-```js
+```clj
 //karma.conf.js
 module.exports = function (config) {
     config.set({
@@ -237,11 +231,9 @@ module.exports = function (config) {
         }
     })
 };
-
 ```
 
-We're now able to run our tests in a CI environment using `npx shadow-cljs compile ci && npm run karma start --single-run`
+Com tudo isso feito, poderemos rodar nossos testes em um ambiente de CI rodando o comando `npx shadow-cljs compile ci && npm run karma start --single-run`
 
-
-### React testing library
-I won't really write much aobut `react-testing-library` in here. There is a [great post by Francesco Vitullo on how to test Clojurescript apps using it](https://francisvitullo.medium.com/a-way-of-testing-views-in-clojurescript-apps-98aaf57c5c2a). I tried following it's steps (pinning react-testing-library's version to `6.1.2`) and managed to get it working. I think it's main advantage is that RTL makes it possible to avoid all that DOM manipulation we've done, but this didn't seem like a good enough reason for me to use it. I plan on giving it another try, though.
+# React testing library
+Não falarei muito sobre o `react-testing-library` nesse post. Um excelente post explicando como utilizar o rtl para testar aplicativos Clojurescript já existe. Eu cheguei a tentar seguir o post/tutorial (forçando a versão do RTL para 6.1.2) e consegui fazer meus testes rodarem. Acredito que a maior vantagem do RTL é evitar todo esse processo de interop e manipular a DOM, mas isso não me parece o suficiente para usá-lo no momento.

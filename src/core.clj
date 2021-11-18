@@ -83,11 +83,32 @@
        (map post->preview)
        (map post->sitemap-url)))
 
+(defn get-translations []
+  (->> "translations/"
+       (io/file)
+       (file-seq)
+       (filter filter-post)
+       (map md->map)
+       (map post->html)
+       (map tag->taglist)
+       (map post->selmer)
+       (map post->slug)
+       (map post->preview)
+       (map post->sitemap-url)))
+
 (defn render-post [post]
   (selmer/cache-off!)
   (selmer/render-file "post.html"
                       (merge config
                              {:post post})))
+
+(defn save-translation [post html-content]
+  (spit
+   (str
+    "./docs/translations/"
+    (:slug post)
+    ".html")
+   html-content))
 
 (defn save-post [post html-content]
   (spit
@@ -158,7 +179,10 @@
     (render-404)
     (render-about)
     (render-collage)
-    (create-sitemap)))
+    (create-sitemap)
+    (let [translations (get-translations)]
+      (doseq [t translations]
+       (save-translation t (render-post t))))))
 
 (comment
   (render-all {}))
