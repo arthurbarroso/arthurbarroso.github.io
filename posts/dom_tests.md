@@ -12,7 +12,7 @@ Everything was going pretty smoothly until I needed to run DOM tests, which seem
 ### First try
 
 We'll start with a very basic reagent + shadow-cljs project. This will be done by running `lein new re-frame app` for simplicity's sake. With the app ready to go, we will also create a simple button component. It will look like this:
-```clojure
+```clj
 ;;src/app/components/button.cljs
 (ns app.components.button)
 
@@ -24,7 +24,7 @@ We'll start with a very basic reagent + shadow-cljs project. This will be done b
    text])
 ```
 This is a very basic dummy component. It receives an `on-click` handler, a `text`, and a `disabled` boolean check as properties. With our button set-up, let's try rendering it in our tests. We'll first need to add the following build specification to `shadow-cljs.edn` and then create our test file
-```clojure
+```clj
 ;;shadow-cljs.edn
   :test {:target :browser-test
          :test-dir "resources/public/js/test"
@@ -32,7 +32,7 @@ This is a very basic dummy component. It receives an `on-click` handler, a `text
                      :http-root          "resources/public/js/test"}}}}
 ```
 
-```clojure
+```clj
 ;;test/app/button_test.cljs
 (ns app.button-test
   (:require [app.components.button :refer [button]]
@@ -56,7 +56,7 @@ This happens because there is no `div id="app"` inside our test html file. We co
 
 ### Getting things to render
 As seen above, we need to somehow have a div with the id `app` in our DOM before running the tests. A nice way of dealing with this is by using Clojurescript's `use-fixtures` -using it we'd be able to define a fixture that runs only once and uses javascript to create the div we need. Let's take a look at how we're able to do this:
-```clojure
+```clj
 ;;test/app/button_test.cljs
 (ns app.button-test
   (:require [app.components.button :refer [button]]
@@ -85,7 +85,7 @@ We'll use this `create-app-element` function for each of our test files. It'll e
 ### Making assertions about components
 With components rendering in our tests, we're now able to make assertions about them. Let's say we want to check whether our button component actually renders. We could check if the `text` prop is being rendered within the button component using the following test
 
-```clojure
+```clj
 (deftest button-component-test
   (testing "Renders correctly"
     (rdom/render [button {:on-click #(println "hi")
@@ -101,7 +101,7 @@ With components rendering in our tests, we're now able to make assertions about 
 This is a dummy test. We're simply checking if things are rendering. If we really want to test things and their behaviors we'd need to click buttons, change inputs and such. This is where `react-dom/test-utils` comes in.
 
 With `react-dom/test-utils`, we're able to simulate user events and check whether our button uses the `on-click` handler property it receives. An example of test using `react-dom/test-utils` would look like the following:
-```clojure
+```clj
 (ns app.button-test
   (:require [app.components.button :refer [button]]
             [cljs.test :refer-macros [deftest is testing use-fixtures]]
@@ -140,7 +140,7 @@ This example uses a reagent atom to check whether on-click has been called. This
 Let's say we want to clean up the DOM between each `deftest`. This is achievable, but not with the code we currently have. Since we're using `reagent-dom/render` to render stuff, we cant simply delete our `app`'s div children -our components aren't being rendered as children, the whole `app` div is becoming our components. We can fix this.
 
 Our first step will be defining our `append-container` function. This function will take a target element and an `id` as arguments. It will then create a div with that `id` as the `target`'s children. We will then define our `dom-cleanup!` fixture, which will use's `clojure.browser.dom` `remove-children` function, which simply removes a DOM element's children.
-```clojure
+```clj
 (ns app.button-test
   (:require [app.components.button :refer [button]]
             [cljs.test :refer-macros [deftest is testing use-fixtures]]
@@ -172,7 +172,7 @@ Our first step will be defining our `append-container` function. This function w
 ```
 
 Our tests will stay pretty much the same, except we'll render them using `append-container` and will query the DOM for them using the `id` we supply to `append-container`
-```clojure
+```clj
 (deftest button-component-click-test
   (testing "Uses the supplied `on-click` property"
     (let [ra (reagent/atom 1)]
@@ -208,7 +208,7 @@ We'll need `karma`, `karma-cljs-test` (so we can write our tests using `cljs`) a
 
 ```
 We'll add a `:ci` build configuration in our shadow-cljs.edn file.
-```clojure
+```edn
  ;;shadow-cljs.edn
   :ci {:target :karma
        :output-to "target/ci.js"}}}
