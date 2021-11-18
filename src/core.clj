@@ -62,6 +62,9 @@
     (assoc post
            :preview (subs parsed-content 0 (:end third-match)))))
 
+(defn post->sitemap-url [post]
+  (assoc post :sitemap-url (str "https://arthurbrrs.me/" (:slug post) ".html")))
+
 (defn get-posts []
   (->> "posts/"
        (io/file)
@@ -72,7 +75,8 @@
        (map tag->taglist)
        (map post->selmer)
        (map post->slug)
-       (map post->preview)))
+       (map post->preview)
+       (map post->sitemap-url)))
 
 (defn render-post [post]
   (selmer/cache-off!)
@@ -133,6 +137,14 @@
         (selmer/render-file "404.html"
                             (merge config {:posts posts})))))
 
+(defn create-sitemap []
+  (let [posts (get-posts)]
+     (spit "./docs/sitemap.xml"
+           (selmer/render-file "sitemap.xml"
+                               {:posts posts
+                                :last-mod "2021-11-18"}))))
+
+
 (defn render-all [_]
   (let [posts (get-posts)]
     (doseq [p posts]
@@ -141,7 +153,8 @@
   (render-404)
   (render-about)
   (render-collage)
-  (render-home))
+  (render-home)
+  (create-sitemap))
 
 (comment
   (render-all {}))
