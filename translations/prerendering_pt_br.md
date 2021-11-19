@@ -1,44 +1,39 @@
 Author: Arthur Barroso
-Title: React prerendering experiments in Clojure(script) land
-Link: Prerendering React Clojurescript Land
+Title: Experimentos tentando fazer pre-rendering de React em Clojure(script)
+Link: Pre renderizando React em Clojure(script)
 Description: A blog post about different React pre-rendering techniques and approaches in Clojure(script)
 Date: 2021-09-21
 Tags: shadow-cljs, react, clojure, clojurescript, pre-render, ssr
 
-I've been kinda fascinated about pre-rendering my react applications for about three months. It all started when I started to develop [brundij](https://github.com/arthurbarroso/brundij) and realized I wouldn't be able to get good performance results without some prerendering techniques, which ultimately led me into reading lots of stuff about it.
+Por cerca de três meses eu estive meio fascinado com a ideia de fazer pre-render das minhas aplicações react. Tudo isso começou quando comecei a desenvolver minha aplicação [brundij](https://github.com/arthurbarroso/brundij) e percebi que não conseguiria obter boas performances sem usar técnicas de pre-rendering, o que, por fim, me levou a ler bastante coisa sobre o assunto.
 
-I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.
+Eu desenvolvo aplicações React por algum tempo, mas nunca precisei construir qualquer mecânismo de pre-rendering sem frameworks como Gatsby ou Next, então fazer o pre-render "na mão" foi um desafio para mim. Acabei decidindo escrever esse post falando sobre todas as coisas que tentei e o que penso sobre cada uma dessas. Esse post **não** deve ser visto como um tutorial: tudo aqui é altamente experimental.
 
-> A PT-BR version of this post is available [here](./translations/pre-renderizando-react-em-clojure-script)
+Enquanto escrevia, percebi que este post ficaria *bem* longo, então também criei um repositório com o código necessário para seguir o tutorial. Você pode checá-lo [aqui](https://github.com/arthurbarroso/blog-prerendering-demo).
 
-While writing, I realized this post would end up getting quite lengthy, so I also pushed a demo repository with all the code you'd need to follow everything I've written. You can check it [here](https://github.com/arthurbarroso/blog-prerendering-demo)
+### Pré-render de aplicações React
+Pre-rendering em aplicações React é comumente alcançado utilizando frameworks como Gatsby e Next.js. Essas ferramentas/frameworks compartilham uma feature: elas tornam possível gerar o HTML estático das páginas da aplicação enquanto se faz o build. (Next.js também torna possível gerar esse conteúdo a cada request, usando server-side rendering).
 
-### React prerendering
+O que acontece para ambas as estratégias (static site generation e server-side rendering) é que as telas/componentes React são renderizadas para uma string que depois se conecta a seus event handlers. Isso significa que o client baixa um HTML estático pré-renderizado e, com o HTML montado, o javascript da página (React) conecta os devidos event handlers. Isso é feito usando `ReactDomServer.renderToString()` e `React.hydrate()`.
 
-Prerendering in React is commonly achieved by using frameworks such as Next.js and Gatsby. These tools/frameworks share a common feature: they make it possible to generate your application's static HTML on build time. (Next.js also makes it possible to generate the static content/page on each request, using server-side-rendering).
+### Pré-render em Clojurescript
+Eu gosto de escrever minhas aplicações usando Clojurescript e ainda sim gostaria de poder fazer o pré-render delas. O problema disso é que os frameworks supracitados não funcionam bem com Clojuresccript, como apontado pelo Thomas Heller [nesse post](https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912).
 
-What happens for both of these strategies (static generation and server-side rendering) is that the React components/views get rendered to a string that later gets event handlers attached to it. This means the client downloads a prerendered static HTML version of the React application and React attaches event handlers to it afterward. This is done  by using [ReactDomServer.renderToString()](https://reactjs.org/docs/react-dom-server.html) and [React.hydrate()](https://reactjs.org/docs/react-dom.html#hydrate).
-
-### Clojurescript and prerendering
-I wanted to be able to write my applications using Clojurescript and still prerender them. The problem for Clojurescript is that these React prerendering frameworks often don't play well with it, as pointed out by Thomas Heller in [this post](https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912).
-
-This ultimately got me into thinking about how could I achieve prerendering in my Reagent/re-frame applications without having to spin up a node server. I then started looking for stuff on that topic, which led me to a few findings:
-
+Isso me levou a pensar em como eu poderia fazer o pré-rendering das minhas aplicações Reagent/re-frame sem precisar subir um servidor Node. Comecei então a procurar por conteúdos sobre o assunto, que me levaram a alguns achados:
 - [React Server Side Rendering with GraalVM for Clojure](https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure)
 - [Prerendering a re-frame app with Chrome headless](https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0)
-- [pupeno/Prerenderer](https://github.com/pupeno/prerenderer) - which I haven't yet tried and won't talk about in this post
+- [pupeno/Prerenderer](https://github.com/pupeno/prerenderer) - que ainda não testei e, portanto, não falarei sobre
 - [borkdude/nbb](https://github.com/borkdude/nbb)
 
-These resources helped me grasp things and try a few different setups, which I'll describe here.
+Esses links me ajudarem a entender algumas coisas e tentar alguns setups diferentes, que descreverei aqui.
 
-### First setup: using GraalVM and Polyglot
-This setup is heavily based on the post I linked above, [React Server Side Rendering with GraalVM for Clojure](https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure), but I decided to tweak things a little bit to better suit my development workflow:
-- Instead of using Nextjournal's custom Clojurescript version, I decided to go with `shadow-cljs` and use its related Clojurescript version.
-- I wanted to use re-frame to control my application's state.
+### Primeiro setup: usando GraalVM e Polyglot
+Esse setup é altamente baseado no post linkado acima, [React Server Side Rendering with GraalVM for Clojure](https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure), mas decidi mudar alguns detalhes para que isso se adaptasse melhor ao meu workflow:
+- Ao invés de usar a versão customizada de Clojurescript usada pelo Nextjournal, optei por usar `shadow-cljs` e sua versão de Clojurescript.
+- Eu gostaria de usar re-frame para controlar o estado da aplicação.
+Para conseguir isso, precisei procurar um pouco e realizar alguns setups meio "hackish" que não são tão recomendados. Os passos para fazer isso são:
 
-To acheive this, I needed to do some digging and do some hackish things that aren't really recommended. Let's take a look at the steps needed to get shadow, graal and re-frame working:
-
-We will start by first defining our `deps.edn` file:
+Criar nosso arquivo `deps.edn`
 ```clj
 ;;deps.edn
 {:deps {org.clojure/clojure {:mvn/version "1.10.3"}
@@ -60,7 +55,7 @@ We will start by first defining our `deps.edn` file:
                               "--middleware"
                               "[cider.nrepl/cider-middleware]"]}}}
 ```
-Now it is time to create our `shadow-cljs.edn` config file.
+Configurar o `shadow-cljs`
 ```clj
 ;;shadow-cljs.edn
 {:nrepl {:port 8777}
@@ -78,7 +73,8 @@ Now it is time to create our `shadow-cljs.edn` config file.
           :modules
           {:app {:init-fn [app.component/countinghtml]}}}}}
 ```
-If we compile our code using the above configuration and try to use any of javascript's async functions such as `setTimeout` or `setInterval` we'll be greeted with an error message saying async is not yet supported in shadow's graaljs target.  As seen on [this issue](https://github.com/thheller/shadow-cljs/issues/685) on shadow-cljs's repo, Clojurescript removed the shims needed for async to work in its graaljs compile target, which means we'll have to add those shims ourselves.  We will want shadow to prepend our built code with these shims and also remove the definitions of the functions shadow creates for these. This can be done by adding the key `:prepend-js` pointing at [this file](https://github.com/clojure/clojurescript/blob/e4300da64c4781735146cafc0ca029046b83944c/src/main/cljs/cljs/bootstrap_graaljs.js) to our `:app` module and by creating a build hook:
+
+Se compilarmos o código usando a configuração acima e tentarmos usar qualquer função assíncrona do javascript como `setTimeout` ou `setInterval` receberemos uma mensagem de erro dizendo que async ainda não é suportado pelo target `graaljs`. Como visto [nessa issue](https://github.com/thheller/shadow-cljs/issues/685) do repositório do `shadow-cljs`, os "shims" necessários para que Clojurescript rodasse as funções `async` no target `graaljs` foram removidos. Para resolver isso, precisaremos fazer com que o `shadow-cljs` faça um prepend de nosso código com os shims e delete as definições de função não suportada. Isso pode ser feito adicionando a key `prepend-js` apontando para [esse arquivo](https://github.com/clojure/clojurescript/blob/e4300da64c4781735146cafc0ca029046b83944c/src/main/cljs/cljs/bootstrap_graaljs.js) em nosso módulo app e criando um build hook
 ```clj
 ;;shadow-cljs.edn
 {...
@@ -89,7 +85,7 @@ If we compile our code using the above configuration and try to use any of javas
            :prepend-js "./graal-bootstrap.js"}
           :build-hooks [(util.clean/hook)]}}}
 ```
-Our hook:
+Hook:
 ```clj
 ;;src/util/clean.clj
 (ns util.clean
@@ -107,7 +103,8 @@ Our hook:
               (string/replace to-replace " "))))
   build-state)
 ```
-The above build hook creates a copy of our shadow-built code and removes all of shadow's `graaljs async_not supported` functions, so our code ends up calling our shims instead of throwing async not supported errors. It is now time to set up Graal's Polyglot and our very first component:
+O build hook acima cria uma cópia do código buildado pelo shadow e remove todas as definições `async_not_supported` do código, fazendo com que nossas chamadas a essas funções rodem as funções dos "shims" ao invés de causar erros.
+Com isso feito, é hora de configurar o Polyglot e nosso primeiro componente:
 
 ```clj
 (ns app.render
@@ -180,9 +177,9 @@ The above build hook creates a copy of our shadow-built code and removes all of 
         (.eval context app-s)
         (.asString (execute-fn context fun arg))))))
 ```
-ps.: the `serialize-arg` function was found [here](https://github.com/wavejumper/clj-polyglot/blob/e56783822e85d0b75d048c3e6a8b597f0e26724a/src/clj_polyglot/core.clj)
+ps.: a função serialize-arg foi encontrada [aqui](https://github.com/wavejumper/clj-polyglot/blob/e56783822e85d0b75d048c3e6a8b597f0e26724a/src/clj_polyglot/core.clj)
 
-The component we'll prerender throughout this post:
+O componente que utilizaremos para fazer pré-rendering:
 ```clj
 (ns app.component
   (:require [app.events :as events]
@@ -226,20 +223,19 @@ The component we'll prerender throughout this post:
     (react-dom/hydrate (reagent/as-element [wrapped-counter])
                        cb)))
 ```
+Por agora só usaremos event handlers mockados.
 
-Let's just add dummy event handlers for now.
-
-There are two ways we can use this setup:
-- Server-side rendering (as seen on NextJournal's post).
-- Generating static HTML pages to be hydrated on the build.
+Existem duas maneiras de usar esse setup:
+- Com server-side rendering (como visto no post do NextJournal)
+- Gerando HTML estático no build e hidratando as páginas no client.
 
 #### Server-side rendering
-We'll want to run `app.render` on each of the requests our app receives. I'll use reitit, ring, and jetty for this. To do so, we'll add the needed dependencies to our `deps.edn` file:
+Iremos rodar a função `app.render` em cada request que nossa aplicação receber. Para montar um servidor base irei usar reitit, ring e jetty.
 ```clj
 metosin/reitit {:mvn/version "0.5.5"}
 ring/ring {:mvn/version "1.8.1"}
 ```
-It is now time to create our very basic handler/router:
+Criando um handler/router base:
 ```clj
 (ns app.server
   (:require [app.render :as renderer]
@@ -272,11 +268,10 @@ It is now time to create our very basic handler/router:
 (comment
   (run-server))
 ```
-We'll now want to run `clj -M:cljs watch app` and navigate to `http://localhost:4000` in our browser, which will show us our prerendered and hydrated component/view. This sum's up how you would use Graal with shadow to server-side render your application.
+Agora rodaremos `clj -M:cljs watch app` e navegaremos para `http://localhost:4000` no browser, que mostrará para nós a aplicação pré-renderizada. Pronto, fizemos o server-side rendering usando Graal.
 
-#### Generating static HTMLs
-It is also possible to use Graal to create static HTML files for our application at build time. These HTML files can then be hydrated by the browser. To do so, we'll simply modify our build-hook so it generates the HTML using graal and then spits it to a file inside our public dir:
-
+#### Gerando HTMLs estáticos
+Também é possivel usar o Graal para gerar HTML estáticos de nossa aplicação durante o build. Esses arquivos HTMLs então podem ser hidratados pelo browser. Para fazer isso, podemos simplesmente modificar nosso build-hook para que ele gere HTML usando o graal e salve esses arquivos no nosso diretório `public`
 ```clj
 (ns util.clean
   (:require [app.render :as renderer]
@@ -301,20 +296,17 @@ It is also possible to use Graal to create static HTML files for our application
     (spit "public/prerendered.html" html-to-output))
   build-state)
 ```
+Rodar `clj -M:cljs watch app` e navegar até `http://localhost:8280/prerendered.html` deve nos mostrar nossa tela pré-renderizada.
 
-Running `clj -M:cljs watch app` and navigating to `http://localhost:8280/prerendered.html` will show us our prerendered and hydrated component/view. 
+##### Requests HTTP no client
+Eu optei por não mostrar o código dos event handlers do re-frame de propósito. Você pode ter percebido que existe um evento chamado `fetch`. Esse evento deveria inciar um request HTTP, que muito provavelmente seria feito usando `re-frame-http-fx` em uma SPA clojurescript comum.
 
-#### HTTP requests from within the client
-I didn't show the code of the applications event handlers on purpose. You may have noticed I have an event called `fetch`. This event is supposed to fire a HTTP request, which would most probably be done by using `re-frame-http-fx` in your regular SPA.
-
-The thing is: while using the `graaljs` target, you won't be able to even require `cljs-ajax`, which is used by `re-frame-http-fx`, since it uses `XMLHTTPRequest`, which isn't available. To solve this, I came up with a library that wraps `cljs-http` into a re-frame effect handler. Let's add it and create our `fetch` event.
-
-We'll start by adding the following dependencies to our `deps.edn` file:
+O problema é: quando usando o target `graaljs` será impossível usar `cljs-ajax`, que é a biblioteca por trás das requests do `re-frame-http-fx`: no target `graaljs` não temos acesso à `XMLHTTPRequest`, que é usado por essas bibliotecas. Para contornar esse problema, criei uma biblioteca que "envelopa" a biblioteca `cljs-http` em eventos/efeitos do re-frame. Vamos adicioná-la a nossas dependências:
 ```clj
 cljs-http/cljs-http {:mvn/version "0.1.46"}
 org.clojars.arthurbarroso/re-frame-cljs-http {:mvn/version "0.1.0"}
 ```
-With the dependencies added, we will add/change our `fetch` event handler:
+Com as dependências instaladas, vamos mudar/criar nosso event handler `fetch`
 ```clj
 (ns app.events
   (:require [re-frame-cljs-http.http-fx]
@@ -355,17 +347,15 @@ With the dependencies added, we will add/change our `fetch` event handler:
                  :on-success [::success]
                  :on-failure [::failure]}}))
 ```
-Now, accessing your application and clicking the `Fetch users` button should add the http results to your users list and show it at your component/view.
+Agora, ao acessar a aplicação e clicar o botão "Fetch users" deve adicionar os resultados da request HTTP à lista de usuários.
 
-### Second setup: Headless Chrome using Etaoin
-I won't describe much of this setup in here. [Joel Sánchez's post](https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0) covers it pretty well. This setup has been by far one of the easiest to get up and running.  You can either set it up as he did in his post (which serves as a server-side rendered version of your application) or use it to generate static HTML's like I did in [this file](https://github.com/arthurbarroso/brundij/blob/main/src/clj/brundij/pre_render.clj).
+### Segundo setup: Chrome headless com Etaoin
+Não escreverei muito deste setup aqui. [O post escrito por Joel Sánchez](https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0) cobre bem o assunto. Esse setup é de longe um dos mais fáceis de se fazer funcionar. Você pode fazer como o post dele sugere (usando um esquema de server-side rendering da sua aplicação) ou usá-lo para gerar HTMLs estáticos.
 
-It is important to add that my setup for generating these static htmls helps me achieve good performance results, but isn't the best and does something wrong: it calls `react-dom.render` instead of `react-dom.hydrate`. This happens because I am using a library that injects css at the dom asynchronously, which means the server-rendered html would never match the client's html.
+### Terceiro setup: criando scripts de pré-render usando shadow-cljs
+Outra abordagem possível é criar um projeto shadow que rode duas builds separadas: uma que tenha como target o browser e outra que tenha como target um script node. Esse script node será o responsável por gerar o HTML pré-renderizado.
 
-### Third setup: building prerender scripts using shadow-cljs
-Another possible approach is to create a shadow project that runs two separate builds: one for the regular browser build and another one that creates a node script for generating the prerendered html.
-
-I'll use the same codebase we've used for the previous setups for simplicity's sake. To set up this method, I'll add two new build's to our `shadow-cljs.edn` and a new file to our source code:
+Usarei a mesma codebase dos setups anteriores para facilitar o setup. Para configurar isso, adicionremos dois novos builds a nosso `shadow-cljs.edn` e criaremos um novo arquivo de código
 ```clj
 {:nrepl {:port 8777}
 
@@ -403,6 +393,7 @@ I'll use the same codebase we've used for the previous setups for simplicity's s
                   :main app.render-server/main-to-html
                   :output-to "public/prerenderscript.js"}}}
 ```
+
 ```clj
 (ns app.render-server
   (:require [app.component :refer [counting-component]]
@@ -439,14 +430,14 @@ I'll use the same codebase we've used for the previous setups for simplicity's s
     (fs/writeFileSync "public/counting-view.html" final)))
 ```
 
-The `browser` build target creates our typical browser build. This build is important because it makes it possible for us to import the needed javascript to our page (there are other ways of doing this, but you can probably figure it out). The `pre-render` build uses our new namespace's function to output a node script that will use `fs` to write a prerendered html to our public path.
+A build `browser` cria a build de browser. Essa build é importante pois torna possível importar o javascript necessário para nossa página (existem outras maneiras de fazer isso, mas você provavelmente consegue descobrí-las sozinho). A build `pre-render` usa as funções do nosso novo namespace para criar um script node que usa `fs` para criar o HTML pré-renderizado.
 
-Having the above set up, it is time to run `clj -M:cljs compile pre-render`, then `clj -M:cljs watch app` and, finally, navigate to `http://localhost:8280/counting-view.html`
+Com isso configurado, é hora de rodar `clj -M:cljs compile pre-render`, depois `clj -M:cljs watch app` e depois acessar `http://localhost:8280/couting-view.html`.
 
-### Fourth setup: using `nbb`
-[nbb](https://github.com/borkdude/nbb) is a tool for `ad-hoc cljs scripting in node.js`. It allows us to run `Clojurescript` code as scripts. Let's prerender our application using `nbb`:
+### Quarto setup: usando nbb
+[nbb](https://github.com/borkdude/nbb) é uma ferramenta para scripting ad-hoc em clojurescript. Ela permite que usemos CLojurescript para rodar scripts em Node.js.
 
-First, we'll want to modify our `counting-component` so it accepts an initial-data state. We'll talk about this initial state soon.
+Para pré-renderizarmos a aplicação com nbb, primeiro iremos modificar nosso `counting-component` para que ele aceite uma prop initial-data. Falaremos mais sobre essa prop em breve.
 ```clj
 (defn counting-component [initial-data]
   (let [click-2 (reagent/atom 0)
@@ -469,7 +460,8 @@ First, we'll want to modify our `counting-component` so it accepts an initial-da
        [:button {:on-click #(re-frame/dispatch [::events/fetch])}
         "Fetch users"]])))
 ```
-We will then want to modify our `app.render-server/main-to-html` function so it accepts initial data:
+
+Iremos então modificar nossa função `app.render-server/main-to-html` para que ela também aceite dados (initial-data)
 ```clj
 (defn ^:export main-hydrate []
   (re-frame/dispatch-sync [::events/init-db])
@@ -496,7 +488,7 @@ We will then want to modify our `app.render-server/main-to-html` function so it 
     (fs/writeFileSync "public/counting-view.html" final)))
 ```
 
-The nbb script file at the project's root:
+Agora, por fim, criaremos nosso script no root do projeto:
 ```clj
 (ns re-frame.core)
 
@@ -519,28 +511,24 @@ The nbb script file at the project's root:
 
 (println (render-server))
 ```
-You may have noticed something weird here. We're re-defining `re-frame.core`'s namespace. This is needed because [`nbb` doesn't support re-frame as of now](https://github.com/borkdude/nbb/issues/79), so we simply "mock" those to pre-render and this is also the reason we need initial data. Our initial data must match the data that will be inserted at our re-frame's `db` so React's prerendered DOM matches the DOM React's hydrate expects. We also re-define `cljs-http` and `re-frame-cljs-http.http-fx` namespaces to avoid having to use replace-deps
-
-`nbb` supports adding clojure dependencies, but re-frame depends on a few `goog` classes that aren't defined on nbb right now.
-
-Since our component/view is outside of our script, we'll need to pass our classpath to `nbb` and run it:
+Você deve ter percebido algo estranho aqui: estamos redefinindo o namespace `re-frame.core` - isso é necessário pois o [nbb ainda não suporta o re-frame](https://github.com/borkdude/nbb/issues/79), então o mockamos. Essa também a razão por precisarmos passar um initial-data para nossos componentes. Nosso initial-data deve ser igual ao conteúdo que será inicializado no db do re-frame para que o React não aponte erros de diferença entre o conteúdo renderizado e o conteúdo hidratado.
+Como nosso componente não está dentro do arquivo do script, precisamos passar nosso classpath ao script e rodá-lo:
 ```bash
 classpath="$(clojure -A:nbb -Spath -Sdeps '{}')"
 nbb --classpath "$classpath" script.cljs
 ```
-You should now be able to run `clj -M:cljs watch browser` and visit `http://localhost:8280/counting-view.html` to check the nbb-preredered page.
+Agora deve ser possível rodar `clj -M:cljs watch browser` e visitar `http://localhost:8280/counting-view.html` para checar a página pré-renderizada.
 
-### Wrapping up
+### Concluindo
+Foi bem legal testar todas essas coisas: acabei aprendendo mais sobre React, Clojurescript e a web.
 
-It was pretty fun to try all of this stuff. I ended up learning more about React, Clojurescript and the web. I am probably going to try using the `static html generation` graal setup for my next project since it gets hooked to shadow's build without having to spin up a node server.
+Gostaria de salientar que provavelmente existem outros setups melhores e mais seguros por aí, mas, como eu disse, eu queria testar e fazer as coisas sozinho. Se você precisa de algo pronto para a produção talvez faça mais sentido pesquisar no slack clojurians.
 
-I am also pretty sure there are much better setups out there, but I wanted to try and make things on my own. If you're looking for production-ready stuff you're better off asking people at Clojurians' slack.
-
-If you're planning to adopt any of the prerendering setups above, you'd probably take a few things into account:
-- Every of these setups is **highly experimental**
-- You most probably wont be able to use `css-in-js` solutions.
-- The third step will require some more boilerplate code/tooling if you need to use "esm only" libraries.
-- The decision to use static htmls vs server-side rendered html should be based on your application's performance and needs.
-- The etaoin setup is still probably the easiest one.
-- [You can make `nbb` pull requests to add stuff that isn't yet available](https://github.com/borkdude/nbb/pull/87).
-- Hacking shadow's `graaljs` target to output async code isn't the best approach.
+Se você gostaria de testar qualquer um dos setups listados neste post, recomendo que leve em conta as seguintes coisas:
+- TOdos esses setups são **altamente experimentais**
+- Você provavelmente não conseguirá utilizar `css-in-js`
+- O terceiro setup requer mais boilerplate se você precisar usar bibliotecas "esm only"
+- A decisão de usar HTMLs estáticos ou fazer SSR deve ser baseada na performance de sua aplicação bem como seus requisitos
+- O setup com etaoin é provavelmente o mais fácil
+- [Você pode fazer pull requests no repositório do nbb para adicionar coisas que ainda não estão disponíveis](https://github.com/borkdude/nbb/pull/87)
+- Fazer o target `graaljs` rodar código assíncrono não é o melhor caminho
