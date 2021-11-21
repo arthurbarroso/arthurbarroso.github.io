@@ -94,6 +94,12 @@ blockquote footer {
     font-size: 32px;
 }
 
+.post-header-link {
+  font-size: 32px;
+  text-decoration: none;
+  font-weight: 900;
+}
+
 #post-meta {
     font-size: 14px;
     color: rgba(0,0,0,0.4)
