@@ -12,8 +12,6 @@ Everything was going pretty smoothly until I needed to run DOM tests, which seem
 
 This post should be enough to get yourself a simple Clojurescript testing suite up and running.
 
-> A PT-BR version of this post is available [here](./translations/testando-a-dom-usando-shadow-cljs-e-reagent.html)
-
 ### First try
 
 We'll start with a very basic reagent + shadow-cljs project. This will be done by running `lein new re-frame app` for simplicity's sake. With the app ready to go, we will also create a simple button component. It will look like this:
