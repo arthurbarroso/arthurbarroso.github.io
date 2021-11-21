@@ -4,8 +4,7 @@
             [markdown.core :as markdown]
             [selmer.parser :as selmer]
             [slugger.core :as slug]
-            [tick.core :as t]
-            [clojure.pprint :as pprint]))
+            [tick.core :as t]))
 
 (defn now []
   (->> (t/zoned-date-time)
@@ -40,7 +39,7 @@
 
 (defn get-translation [metadata]
   (if (:translation metadata)
-    (-> metadata :translation first)
+    (slug/->slug (-> metadata :translation first))
     nil))
 
 (defn post->selmer [post]
@@ -104,8 +103,6 @@
        (map post->sitemap-url)))
 
 (defn render-post [post]
-  (pprint/pprint {:translation (:translation post)
-                  :title (:title post)})
   (selmer/cache-off!)
   (selmer/render-file "post.html"
                       (merge config
