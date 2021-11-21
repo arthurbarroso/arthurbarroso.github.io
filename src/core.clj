@@ -4,7 +4,8 @@
             [markdown.core :as markdown]
             [selmer.parser :as selmer]
             [slugger.core :as slug]
-            [tick.core :as t]))
+            [tick.core :as t]
+            [clojure.pprint :as pprint]))
 
 (defn now []
   (->> (t/zoned-date-time)
@@ -37,6 +38,11 @@
       post
       (assoc-in post [:metadata :tags] (string/split tags #",")))))
 
+(defn get-translation [metadata]
+  (if (:translation metadata)
+    (-> metadata :translation first)
+    nil))
+
 (defn post->selmer [post]
   (let [metadata (-> post :metadata)]
     (merge post
@@ -46,7 +52,8 @@
       :tags (-> metadata :tags)
       :content (:parsed-content post)
       :date (-> metadata :date first t/date)
-      :url (-> metadata :link first)})))
+      :url (-> metadata :link first)
+      :translation (get-translation metadata)})))
 
 (defn post->slug [post]
   (assoc post
@@ -97,6 +104,8 @@
        (map post->sitemap-url)))
 
 (defn render-post [post]
+  (pprint/pprint {:translation (:translation post)
+                  :title (:title post)})
   (selmer/cache-off!)
   (selmer/render-file "post.html"
                       (merge config

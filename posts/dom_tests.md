@@ -2,6 +2,7 @@ Author: Arthur Barroso
 Title: Testing the DOM using shadow-cljs and Reagent
 Link: testing the dom using shadow and reagent
 Description: Testing reagent dom components and screens using shadow-cljs and Clojurescript
+Translation: dom_tests_pt_br
 Date: 2021-09-13
 Tags: shadow-cljs, reagent, tests, dom, react, clojurescript
 
