@@ -2,6 +2,7 @@ Author: Arthur Barroso
 Title: React prerendering experiments in Clojure(script) land
 Link: Prerendering React Clojurescript Land
 Description: A blog post about different React pre-rendering techniques and approaches in Clojure(script)
+Translation: prerendering_pt_br
 Date: 2021-09-21
 Tags: shadow-cljs, react, clojure, clojurescript, pre-render, ssr
 
@@ -10,8 +11,6 @@ I've been kinda fascinated about pre-rendering my react applications for about t
 I have developed React applications for some time already, but never really had to get prerendering to work without using frameworks such as Gatsby or Next, so this was a new challenge for me. I ended up deciding to write this post talking about all the stuff I tried and what I think about each of those. This should not be seen as a tutorial, all the stuff here is highly experimental.
 
 While writing, I realized this post would end up getting quite lengthy, so I also pushed a demo repository with all the code you'd need to follow everything I've written. You can check it [here](https://github.com/arthurbarroso/blog-prerendering-demo)
-
-> A PT-BR version of this post is available [here](./translations/pre-renderizando-react-em-clojure-script)
 
 ### React prerendering
 
