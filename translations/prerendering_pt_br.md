@@ -1,6 +1,6 @@
 Author: Arthur Barroso
 Title: Experimentos tentando fazer pre-rendering de React em Clojure(script)
-Link: Pre renderizando React em Clojure(script)
+Link: prerendering_pt_br
 Description: A blog post about different React pre-rendering techniques and approaches in Clojure(script)
 Date: 2021-09-21
 Tags: shadow-cljs, react, clojure, clojurescript, pre-render, ssr
