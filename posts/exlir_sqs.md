@@ -11,7 +11,13 @@ In this post, I am going to talk a little about how I managed to set up a data i
 
 The project needed to be able to turn the data that came from the SQS queue into its Ecto schemas and insert those into the database. This meant that it was needed to do some data transformation with the message's contents.
 
-### Base concerns
+## Table of contents:
+1. [Base concerns](#concerns)
+2. [Base application setup](#base)
+3. [Dealing with corrupt messages](#corrupt)
+4. [Messages and relationships](#relationships)
+
+### Base concerns <a name="concerns"></a>
 
 I had two main concerns while thinking about how to properly set up my data ingestion pipeline:
 - Dealing with corrupt messages
@@ -27,7 +33,7 @@ A constraint of this project was that it had many relationships in between its s
 3. If user X doesn't yet exist then message A should go back to the queue (and this should be repeated until user X exists or the message gets removed from the queue)
 4. If user X exists then message A gets consumed/inserted and then gets acknowledged (removed from the queue)
 
-### Base application setup
+### Base application setup <a name="base"></a>
 We'll start by creating a Phoenix application and adding Broadway and BroadwaySQS to our dependencies.
 ```bash 
 mix phx.new post --no-html --no-assets --no-dashboard --no-live --no-mailer
@@ -174,7 +180,7 @@ end
 ```
 With the schemas set up, it is time to move on.
 
-### Dealing with corrupt messages
+### Dealing with corrupt messages <a name="corrupt"></a>
 The first step to get Broadway and SQS up and running is to install its dependencies and configure the necessary keys. I won't go into much detail on Broadway's installation since this is well covered by its documentation. Let's create our "Pipeline" (which is how I'll call our SQS message consuming functions/steps):
 ```elixir
 defmodule Post.SQS.Broadway do
@@ -434,7 +440,7 @@ If we then feed SQS a corrupt message while our application is running we'll see
 - Our application logging the failed message
 - The failed message being acknowledged (and therefore not being consumed again)
 
-### Messages and relationships
+### Messages and relationships <a name="relationships"></a>
 As previously stated, every Order in our application depends on the existence of a user with the order's `user_id`. Let's say we receive a message that contains an order with the user_id of `x123`, but there is no user with an `external_id` for this value in our database. How can we handle this situation?
 
 There are two main ways we can tackle this issue:
