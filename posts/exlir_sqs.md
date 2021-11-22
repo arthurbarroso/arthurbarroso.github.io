@@ -9,8 +9,9 @@ For the past few months, I've been working on an Elixir project for a fintech. T
 
 In this post, I am going to talk a little about how I managed to set up a data ingestion pipeline using Broadway to consume data from an SQS queue while dealing with corrupt messages and other constraints. I'll use simpler schemas and data to represent stuff, but it should help you in complex cases, such as the one I went through.
 
-### Base concerns
 The project needed to be able to turn the data that came from the SQS queue into its Ecto schemas and insert those into the database. This meant that it was needed to do some data transformation with the message's contents.
+
+### Base concerns
 
 I had two main concerns while thinking about how to properly set up my data ingestion pipeline:
 - Dealing with corrupt messages
@@ -521,9 +522,9 @@ Since we implemented all the error handling using the `Handlers.handle_error` fu
   end
 ```
 There are a few situations that will flag a message as corrupt:
-- A message that can't be decoded (invalid json)
-- A message that doesn't conform to our embedded schemas (changeset error)
-- A message that doesn't pattern match our functions (unrecognized_data_structure)
+- A message that can't be decoded `(invalid_json)`
+- A message that doesn't conform to our embedded schemas `(changeset_error)`
+- A message that doesn't pattern match our functions `(unrecognized_data_structure)`
 
 Since corrupt messages can't be consumed we simply acknowledge them - it would also be wise to log these messages, which can be done using some of AWS's services or something like Sentry, AppSignal. 
 
