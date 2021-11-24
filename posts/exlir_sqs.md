@@ -1,5 +1,5 @@
 Author: Arthur Barroso
-Title: Dealing with corrupt messages using Broadway and SQS
+Title: Handling message errors using Broadway and AWS SQS
 Link: dealing with corrupt messages using broadway and sqs
 Description: A brief post talking about data ingestion and error handling using Broadway and SQS queues
 Date: 2021-11-22
