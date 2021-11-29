@@ -18,13 +18,11 @@
         <div id="post-meta" class="row">
             {% if post.translation %}
                 <div class="col-lg-6">{{post.date}}</div>
-                <span class="col-lg-6">By: {{post.author}}</span>
                 <span class="col-lg-6 right">
                     <a class="col-lg-6" href="/translations/{{post.translation}}.html">This post can be read in PT-BR</a>
                 </span>
                 {% else %}
                 <div class="col-lg-6">{{post.date}}</div>
-                <span class="col-lg-6 right">By: {{post.author}}</span>
             {% endif %}
         </div>
         <h2>{{post.title}}</h2>

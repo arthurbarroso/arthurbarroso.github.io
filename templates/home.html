@@ -5,9 +5,6 @@
     <div class="post-header">
         <a class="post-header-link" href="{{post.uri}}">{{post.title}}</a>
         <div id="post-meta">
-            {% if post.author %}
-            <div class="author">{{post.author}}</div>
-            {% endif %}
             <div class="date">{{post.date}}</div>
         </div>
     </div>
@@ -15,14 +12,5 @@
     <a class="continue-reading" href="{{post.uri}}">Continue reading &#8594;</a>
     <hr>
     {% endfor %}
-
-    <div id="prev-next">
-        {% if prev-uri %}
-        <a class="left" href="{{prev-uri}}">&laquo; Prev</a>
-        {% endif %}
-        {% if next-uri %}
-        <a class="right" href="{{next-uri}}">Next &raquo;</a>
-        {% endif %}
-    </div>
 </div>
 {% endblock %}
