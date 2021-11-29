@@ -45,14 +45,14 @@
 (defn post->selmer [post]
   (let [metadata (-> post :metadata)]
     (merge post
-     {:title (-> metadata :title first)
-      :author (-> metadata :author first)
-      :description (-> metadata :description first)
-      :tags (-> metadata :tags)
-      :content (:parsed-content post)
-      :date (-> metadata :date first t/date)
-      :url (-> metadata :link first)
-      :translation (get-translation metadata)})))
+           {:title (-> metadata :title first)
+            :author (-> metadata :author first)
+            :description (-> metadata :description first)
+            :tags (-> metadata :tags)
+            :content (:parsed-content post)
+            :date (-> metadata :date first t/date)
+            :url (-> metadata :link first)
+            :translation (get-translation metadata)})))
 
 (defn post->slug [post]
   (assoc post
@@ -62,9 +62,9 @@
 (defn re-seq-pos [pattern string]
   (let [m (re-matcher pattern string)]
     ((fn step []
-      (when (. m find)
-        (cons {:start (. m start) :end (. m end) :group (. m group)}
-              (lazy-seq (step))))))))
+       (when (. m find)
+         (cons {:start (. m start) :end (. m end) :group (. m group)}
+               (lazy-seq (step))))))))
 
 (defn post->preview [post]
   (let [parsed-content (:parsed-content post)
@@ -127,54 +127,54 @@
 (defn render-archives [posts]
   (let [post-list (reverse (sort-by :date posts))]
     (spit "./docs/archives.html"
-        (selmer/render-file "archives.html"
-               (merge config {:posts post-list})))))
+          (selmer/render-file "archives.html"
+                              (merge config {:posts post-list})))))
 
 (defn render-home [posts]
-  (let [post-list (reverse (sort-by :date posts))]
+  (let [post-list (take 3 (reverse (sort-by :date posts)))]
     (spit "./docs/index.html"
-        (selmer/render-file "home.html"
-                (merge config
-                       {:posts post-list})))))
+          (selmer/render-file "home.html"
+                              (merge config
+                                     {:posts post-list})))))
 
 (defn render-about []
   (let [raw-content (slurp "./pages/about.md")
         post (post->html {:raw-content
                           raw-content})]
-     (spit "./docs/about.html"
-         (selmer/render-file "page.html"
-                (merge config
-                       {:page {:title "((arthur barroso))"
-                               :description "about"
-                               :content (:parsed-content
-                                         post)}})))))
+    (spit "./docs/about.html"
+          (selmer/render-file "page.html"
+                              (merge config
+                                     {:page {:title "((arthur barroso))"
+                                             :description "about"
+                                             :content (:parsed-content
+                                                       post)}})))))
 
 (defn render-collage []
   (let [raw-content (slurp "./pages/collage.md")
         post (post->html {:raw-content
                           raw-content})]
-     (spit "./docs/collage.html"
-           (selmer/render-file "page.html"
-                    (merge config
-                     {:title "((arthur barroso))"
-                      :archives-uri "archives.html"
-                      :page {:title "((arthur barroso))"
-                             :description "collage"
-                             :content (:parsed-content
-                                       post)}})))))
+    (spit "./docs/collage.html"
+          (selmer/render-file "page.html"
+                              (merge config
+                                     {:title "((arthur barroso))"
+                                      :archives-uri "archives.html"
+                                      :page {:title "((arthur barroso))"
+                                             :description "collage"
+                                             :content (:parsed-content
+                                                       post)}})))))
 
 (defn render-404 []
   (let [posts (get-posts)]
     (spit "./docs/404.html"
-        (selmer/render-file "404.html"
-                            (merge config {:posts posts})))))
+          (selmer/render-file "404.html"
+                              (merge config {:posts posts})))))
 
 (defn create-sitemap []
   (let [posts (get-posts)]
-     (spit "./docs/sitemap.xml"
-           (selmer/render-file "sitemap.xml"
-                               {:posts posts
-                                :last-mod (:last-mod config)}))))
+    (spit "./docs/sitemap.xml"
+          (selmer/render-file "sitemap.xml"
+                              {:posts posts
+                               :last-mod (:last-mod config)}))))
 
 (defn render-all [_]
   (let [posts (get-posts)]
@@ -188,7 +188,7 @@
     (create-sitemap)
     (let [translations (get-translations)]
       (doseq [t translations]
-       (save-translation t (render-post t))))))
+        (save-translation t (render-post t))))))
 
 (comment
   (render-all {}))
