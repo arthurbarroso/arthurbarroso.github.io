@@ -2,12 +2,14 @@ Author: Arthur Barroso
 Title: My Clojure(script) journey
 Link: my clojure script journey
 Description: A little post describing my journey into Clojure(script)
-Date: 2021-09-13
+Date: 2021-11-30
 Tags: shadow-cljs, reagent, tests, dom, react, clojurescript
 
 I've been learning Functional Programming for quite some time: I studied a bit of Haskell, played around with ReasonML, and ultimately started to work with Elixir. At some point, though, I realized I wanted to try a different language: this is when Clojure comes in - it simply looked really different from the code I was used to writing, which made me decide on trying to learn it.
 
 Clojure is a really nice language and the whole "REPL oriented development" thing is magic, but it took me some time to actually enjoy the language and learn what the REPL meant for the whole development experience. I'll use this post to talk a little about my Clojure(script) journey and how I eventually started loving it.
+
+This post talks solely about my experience.
 
 ## Table of contents:
 1. [The start](#start)
