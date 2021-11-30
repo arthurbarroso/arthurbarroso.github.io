@@ -61,6 +61,7 @@ Creating and developing my own application wasn't easy: I ended up trying many d
 - Tried creating a "native executable" of my application using Graal, and after many tries was able to do it
 - [Set up DOM tests using shadow-cljs and Reagent](https://www.arthurbrrs.me/prerendering-react-clojurescript-land.html)
 
+
 ### Closing thoughts <a name="closing"></a>
 
 I ultimately feel like the development setup can be a gatekeeper in Clojure. I wouldn't be able to get all the joy I now get writing Clojure if I hadn't found Kelvin's video. I do realize that isn't a big problem if you're okay with using VSCode (due to PEZ's amazing work on Calva), but that wasn't my case. Clojure without the REPL just doesn't feel right, to be honest.
