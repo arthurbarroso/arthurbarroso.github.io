@@ -147,6 +147,10 @@ pre {
         margin-top: 30px;
         padding: 30px 40px;
     }
+
+    .navbar-header {
+      justify-content: space-between;
+    }
 }
 
 @media (max-width: 767px) {

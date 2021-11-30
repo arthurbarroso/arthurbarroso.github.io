@@ -5,7 +5,8 @@
         hawk/hawk {:mvn/version "0.2.11"}
         selmer/selmer {:mvn/version "1.12.44"}
         slugger/slugger {:mvn/version "1.0.1"}
-        tick/tick {:mvn/version "0.5.0-RC5"}}
+        tick/tick {:mvn/version "0.5.0-RC5"}
+        hiccup/hiccup {:mvn/version "1.0.5"}}
  :paths ["src" "posts" "templates" "resources" "translations"]
  :aliases {:generate {:ns-default core
                       :exec-fn render-all}}}
