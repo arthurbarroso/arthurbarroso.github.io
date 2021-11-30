@@ -84,16 +84,6 @@
   (reset! server
           (.stop @server)))
 
-;; (defn- auto-reset-handler [ctx _event]
-;;   (binding [*ns* *ns*]
-;;     (stop!)
-;;     (start!)
-;;     ctx))
-
-;; (defn watch! []
-;;   (hawk/watch! [{:paths ["posts"]
-;;                  :handler auto-reset-handler}]))
-
 (comment
   (start!)
   (stop!))
