@@ -1,0 +1,59 @@
+name: generate
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+jobs:
+   posts:
+     name: gen-posts
+     runs-on: ubuntu-latest
+
+     steps:
+       - name: Checkout
+         uses: actions/checkout@v2
+
+       - name: Setup Java
+         uses: actions/setup-java@v1
+         with:
+           java-version: "11.0.8"
+
+       - name: Install Clojure
+         uses: DeLaGuardo/setup-clojure@master
+         with:
+           cli: 1.10.1.693
+
+       - name: Setup Node
+         uses: actions/setup-node@v2
+
+       - name: Cache clojure dependencies
+         uses: actions/cache@v1
+         with:
+           path: ~/.m2/repository
+           key: ${{ runner.os }}-maven-${{ hashFiles('project.clj') }}
+           restore-keys: ${{ runner.os }}-maven-
+
+       - name: Cache node dependencies
+         uses: actions/cache@v2
+         env:
+           cache-name: cache-node
+         with:
+           path: ~/.npm
+           key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+           restore-keys: |
+             ${{ runner.os }}-test-${{ env.cache-name }}-
+             ${{ runner.os }}-test-
+             ${{ runner.os }}-
+
+       - name: Fetch clojure dependencies
+         run: clojure -P
+
+       - name: Fetch js dependencies
+         run: npm i
+
+       - name: Generate posts
+         run: clojure -X:generate
