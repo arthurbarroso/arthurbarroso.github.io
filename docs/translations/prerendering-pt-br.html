@@ -1,65 +1,4 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <title>((arthur barroso)): Experimentos tentando fazer pre-rendering de React em Clojure(script)</title>
-    
-<meta name="keywords" content="">
-
-<meta name="description" content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)">
-
-<meta property="og:description" content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)">
-
-<meta property="og:url" content="" />
-<meta property="og:title" content="Experimentos tentando fazer pre-rendering de React em Clojure(script)" />
-<meta property="og:type" content="article" />
-<meta property="og:image" content="https://www.arthurbrrs.me/img/collage/publicint.png"/>
-
-    <link rel="canonical" href="">
-    <link rel="shortcut icon" href="css/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="/css/screen.css">
-    <!-- <link href="css/screen.css" rel="stylesheet" type="text/css" /> -->
-</head>
-<body>
-
-
-<nav class="navbar">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-title" href="/">((arthur barroso))</a>
-            <ul class="navbar-list">
-              <li><a class="navbar-link" href="/archives">archives</a></li>
-              <li><a class="navbar-link" href="/collage">collage</a></li>
-              <li><a class="navbar-link" href="/about">about</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-
-<div class="container">
-    <div class="row">
-        <div>
-            <div id="content">
-                
-<div id="post">
-    <div class="post-header">
-        <div id="post-meta" class="row">
-            
-                <div class="col-lg-6">2021-09-21</div>
-            
-        </div>
-        <h2>Experimentos tentando fazer pre-rendering de React em Clojure(script)</h2>
-    </div>
-    <div>
-        
-        <p>Por cerca de três meses eu estive meio fascinado com a ideia de fazer pre-render das minhas aplicações react. Tudo isso começou quando comecei a desenvolver minha aplicação <a href='https://github.com/arthurbarroso/brundij'>brundij</a> e percebi que não conseguiria obter boas performances sem usar técnicas de pre-rendering, o que, por fim, me levou a ler bastante coisa sobre o assunto.</p><p>Eu desenvolvo aplicações React por algum tempo, mas nunca precisei construir qualquer mecânismo de pre-rendering sem frameworks como Gatsby ou Next, então fazer o pre-render "na mão" foi um desafio para mim. Acabei decidindo escrever esse post falando sobre todas as coisas que tentei e o que penso sobre cada uma dessas. Esse post <strong>não</strong> deve ser visto como um tutorial: tudo aqui é altamente experimental.</p><p>Enquanto escrevia, percebi que este post ficaria <em>bem</em> longo, então também criei um repositório com o código necessário para seguir o tutorial. Você pode checá-lo <a href='https://github.com/arthurbarroso/blog-prerendering-demo'>aqui</a>.</p><h3>Pré-render de aplicações React</h3><p>Pre-rendering em aplicações React é comumente alcançado utilizando frameworks como Gatsby e Next.js. Essas ferramentas/frameworks compartilham uma feature: elas tornam possível gerar o HTML estático das páginas da aplicação enquanto se faz o build. (Next.js também torna possível gerar esse conteúdo a cada request, usando server-side rendering).</p><p>O que acontece para ambas as estratégias (static site generation e server-side rendering) é que as telas/componentes React são renderizadas para uma string que depois se conecta a seus event handlers. Isso significa que o client baixa um HTML estático pré-renderizado e, com o HTML montado, o javascript da página (React) conecta os devidos event handlers. Isso é feito usando <code>ReactDomServer.renderToString&#40;&#41;</code> e <code>React.hydrate&#40;&#41;</code>.</p><h3>Pré-render em Clojurescript</h3><p>Eu gosto de escrever minhas aplicações usando Clojurescript e ainda sim gostaria de poder fazer o pré-render delas. O problema disso é que os frameworks supracitados não funcionam bem com Clojuresccript, como apontado pelo Thomas Heller <a href='https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912'>nesse post</a>.</p><p>Isso me levou a pensar em como eu poderia fazer o pré-rendering das minhas aplicações Reagent/re-frame sem precisar subir um servidor Node. Comecei então a procurar por conteúdos sobre o assunto, que me levaram a alguns achados:</p><ul><li><a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a></li><li><a href='https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0'>Prerendering a re-frame app with Chrome headless</a></li><li><a href='https://github.com/pupeno/prerenderer'>pupeno/Prerenderer</a> - que ainda não testei e, portanto, não falarei sobre</li><li><a href='https://github.com/borkdude/nbb'>borkdude/nbb</a></li></ul><p>Esses links me ajudarem a entender algumas coisas e tentar alguns setups diferentes, que descreverei aqui.</p><h3>Primeiro setup: usando GraalVM e Polyglot</h3><p>Esse setup é altamente baseado no post linkado acima, <a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a>, mas decidi mudar alguns detalhes para que isso se adaptasse melhor ao meu workflow:</p><ul><li>Ao invés de usar a versão customizada de Clojurescript usada pelo Nextjournal, optei por usar <code>shadow-cljs</code> e sua versão de Clojurescript.</li><li>Eu gostaria de usar re-frame para controlar o estado da aplicação.Para conseguir isso, precisei procurar um pouco e realizar alguns setups meio "hackish" que não são tão recomendados. Os passos para fazer isso são:</li></ul><p>Criar nosso arquivo <code>deps.edn</code><pre><code class="clj">;;deps.edn
+<html lang="en" xml.lang="en" xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8" /><meta content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)" name="description" /><meta content="KLXtbzGXgE_BcqGEwJv7vCVH6-XMLskVDgd-rRVoZHg" name="google-site-verification" /><meta content="https://www.arthurbrrs.me/img/collage/publicint.png" property="og:image" /><meta content="clojure" name="keywords" /><meta content="width=device-width, initial-scale=1" name="viewport" /><meta content="shadow-cljs react clojure clojurescript pre-render ssr" name="keywords" /><meta content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)" name="description" /><meta content="A blog post about different React pre-rendering techniques and approaches in Clojure(script)" property="og:description" /><meta content="https://arthurbrrs.me/prerendering-pt-br.html" property="og:url" /><meta content="Experimentos tentando fazer pre-rendering de React em Clojure(script)" property="og:title" /><meta content="article" property="og:type" /><meta content="https://www.arthurbrrs.me/img/collage/publicint.png" property="og:image" /><link href="https://arthurbrrs.me/prerendering-pt-br" rel="canonical" /><link href="css/favicon.ico" rel="shortcut icon" /><link href="https://fonts.googleapis.com" rel="preconnect" /><link crossorigin="crossorigin" href="https://fonts.gstatic.com" rel="preconnect" /><link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&amp;display=swap" rel="stylesheet" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github.min.css" rel="stylesheet" /><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script><link href="/css/screen.css" rel="stylesheet" /><title>((arthur barroso)): Experimentos tentando fazer pre-rendering de React em Clojure(script)</title></head><body><nav class="navbar"><div class="container"><div class="navbar-header"><a class="navbar-title" href="/">((arthur barroso))</a><ul class="navbar-list"><li><a class="navbar-link" href="/archives">archives</a><a class="navbar-link" href="/collage">collage</a><a class="navbar-link" href="/about">about</a></li></ul></div></div></nav><div class="container"><div class="row"><div><div id="content"><div id="post"><div class="post-header"><div class="row" id="post-meta"><div class="col-lg-6">2021-09-21</div></div><h2>Experimentos tentando fazer pre-rendering de React em Clojure(script)</h2><div><p>Por cerca de três meses eu estive meio fascinado com a ideia de fazer pre-render das minhas aplicações react. Tudo isso começou quando comecei a desenvolver minha aplicação <a href='https://github.com/arthurbarroso/brundij'>brundij</a> e percebi que não conseguiria obter boas performances sem usar técnicas de pre-rendering, o que, por fim, me levou a ler bastante coisa sobre o assunto.</p><p>Eu desenvolvo aplicações React por algum tempo, mas nunca precisei construir qualquer mecânismo de pre-rendering sem frameworks como Gatsby ou Next, então fazer o pre-render "na mão" foi um desafio para mim. Acabei decidindo escrever esse post falando sobre todas as coisas que tentei e o que penso sobre cada uma dessas. Esse post <strong>não</strong> deve ser visto como um tutorial: tudo aqui é altamente experimental.</p><p>Enquanto escrevia, percebi que este post ficaria <em>bem</em> longo, então também criei um repositório com o código necessário para seguir o tutorial. Você pode checá-lo <a href='https://github.com/arthurbarroso/blog-prerendering-demo'>aqui</a>.</p><h3>Pré-render de aplicações React</h3><p>Pre-rendering em aplicações React é comumente alcançado utilizando frameworks como Gatsby e Next.js. Essas ferramentas/frameworks compartilham uma feature: elas tornam possível gerar o HTML estático das páginas da aplicação enquanto se faz o build. (Next.js também torna possível gerar esse conteúdo a cada request, usando server-side rendering).</p><p>O que acontece para ambas as estratégias (static site generation e server-side rendering) é que as telas/componentes React são renderizadas para uma string que depois se conecta a seus event handlers. Isso significa que o client baixa um HTML estático pré-renderizado e, com o HTML montado, o javascript da página (React) conecta os devidos event handlers. Isso é feito usando <code>ReactDomServer.renderToString&#40;&#41;</code> e <code>React.hydrate&#40;&#41;</code>.</p><h3>Pré-render em Clojurescript</h3><p>Eu gosto de escrever minhas aplicações usando Clojurescript e ainda sim gostaria de poder fazer o pré-render delas. O problema disso é que os frameworks supracitados não funcionam bem com Clojuresccript, como apontado pelo Thomas Heller <a href='https://clojureverse.org/t/creating-websites-with-shadow-cljs-gatsby-or-next-js/2912'>nesse post</a>.</p><p>Isso me levou a pensar em como eu poderia fazer o pré-rendering das minhas aplicações Reagent/re-frame sem precisar subir um servidor Node. Comecei então a procurar por conteúdos sobre o assunto, que me levaram a alguns achados:</p><ul><li><a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a></li><li><a href='https://medium.com/@joelsanchezclj/prerendering-a-re-frame-app-with-chrome-headless-bb875de31fd0'>Prerendering a re-frame app with Chrome headless</a></li><li><a href='https://github.com/pupeno/prerenderer'>pupeno/Prerenderer</a> - que ainda não testei e, portanto, não falarei sobre</li><li><a href='https://github.com/borkdude/nbb'>borkdude/nbb</a></li></ul><p>Esses links me ajudarem a entender algumas coisas e tentar alguns setups diferentes, que descreverei aqui.</p><h3>Primeiro setup: usando GraalVM e Polyglot</h3><p>Esse setup é altamente baseado no post linkado acima, <a href='https://nextjournal.com/kommen/react-server-side-rendering-with-graalvm-for-clojure'>React Server Side Rendering with GraalVM for Clojure</a>, mas decidi mudar alguns detalhes para que isso se adaptasse melhor ao meu workflow:</p><ul><li>Ao invés de usar a versão customizada de Clojurescript usada pelo Nextjournal, optei por usar <code>shadow-cljs</code> e sua versão de Clojurescript.</li><li>Eu gostaria de usar re-frame para controlar o estado da aplicação.Para conseguir isso, precisei procurar um pouco e realizar alguns setups meio "hackish" que não são tão recomendados. Os passos para fazer isso são:</li></ul><p>Criar nosso arquivo <code>deps.edn</code><pre><code class="clj">;;deps.edn
 {:deps {org.clojure/clojure {:mvn/version &quot;1.10.3&quot;}
         reagent/reagent {:mvn/version &quot;1.1.0&quot;}
         thheller/shadow-cljs {:mvn/version &quot;2.15.10&quot;}
@@ -453,25 +392,8 @@ org.clojars.arthurbarroso/re-frame-cljs-http {:mvn/version &quot;0.1.0&quot;}
 &#40;println &#40;render-server&#41;&#41;
 </code></pre></p><p>Você deve ter percebido algo estranho aqui: estamos redefinindo o namespace <code>re-frame.core</code> - isso é necessário pois o <a href='https://github.com/borkdude/nbb/issues/79'>nbb ainda não suporta o re-frame</a>, então o mockamos. Essa também a razão por precisarmos passar um initial-data para nossos componentes. Nosso initial-data deve ser igual ao conteúdo que será inicializado no db do re-frame para que o React não aponte erros de diferença entre o conteúdo renderizado e o conteúdo hidratado. Como nosso componente não está dentro do arquivo do script, precisamos passar nosso classpath ao script e rodá-lo:<pre><code class="bash">classpath=&quot;$&#40;clojure -A:nbb -Spath -Sdeps '{}'&#41;&quot;
 nbb --classpath &quot;$classpath&quot; script.cljs
-</code></pre></p><p>Agora deve ser possível rodar <code>clj -M:cljs watch browser</code> e visitar <code>http://localhost:8280/counting-view.html</code> para checar a página pré-renderizada.</p><h3>Concluindo</h3><p>Foi bem legal testar todas essas coisas: acabei aprendendo mais sobre React, Clojurescript e a web.</p><p>Gostaria de salientar que provavelmente existem outros setups melhores e mais seguros por aí, mas, como eu disse, eu queria testar e fazer as coisas sozinho. Se você precisa de algo pronto para a produção talvez faça mais sentido pesquisar no slack clojurians.</p><p>Se você gostaria de testar qualquer um dos setups listados neste post, recomendo que leve em conta as seguintes coisas:</p><ul><li>TOdos esses setups são <strong>altamente experimentais</strong></li><li>Você provavelmente não conseguirá utilizar <code>css-in-js</code></li><li>O terceiro setup requer mais boilerplate se você precisar usar bibliotecas "esm only"</li><li>A decisão de usar HTMLs estáticos ou fazer SSR deve ser baseada na performance de sua aplicação bem como seus requisitos</li><li>O setup com etaoin é provavelmente o mais fácil</li><li><a href='https://github.com/borkdude/nbb/pull/87'>Você pode fazer pull requests no repositório do nbb para adicionar coisas que ainda não estão disponíveis</a></li><li>Fazer o target <code>graaljs</code> rodar código assíncrono não é o melhor caminho</li></ul>
-    </div>
-</div>
-
-            </div>
-        </div>
-
-        <div>
-        </div>
-    </div>
-    <footer>Copyright &copy; 2021 Arthur Barroso</footer>
-</div>
-<script src="/js/clojure_highlighter.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', (event) => {
+</code></pre></p><p>Agora deve ser possível rodar <code>clj -M:cljs watch browser</code> e visitar <code>http://localhost:8280/counting-view.html</code> para checar a página pré-renderizada.</p><h3>Concluindo</h3><p>Foi bem legal testar todas essas coisas: acabei aprendendo mais sobre React, Clojurescript e a web.</p><p>Gostaria de salientar que provavelmente existem outros setups melhores e mais seguros por aí, mas, como eu disse, eu queria testar e fazer as coisas sozinho. Se você precisa de algo pronto para a produção talvez faça mais sentido pesquisar no slack clojurians.</p><p>Se você gostaria de testar qualquer um dos setups listados neste post, recomendo que leve em conta as seguintes coisas:</p><ul><li>TOdos esses setups são <strong>altamente experimentais</strong></li><li>Você provavelmente não conseguirá utilizar <code>css-in-js</code></li><li>O terceiro setup requer mais boilerplate se você precisar usar bibliotecas "esm only"</li><li>A decisão de usar HTMLs estáticos ou fazer SSR deve ser baseada na performance de sua aplicação bem como seus requisitos</li><li>O setup com etaoin é provavelmente o mais fácil</li><li><a href='https://github.com/borkdude/nbb/pull/87'>Você pode fazer pull requests no repositório do nbb para adicionar coisas que ainda não estão disponíveis</a></li><li>Fazer o target <code>graaljs</code> rodar código assíncrono não é o melhor caminho</li></ul></div></div></div></div></div></div><footer>Copyright &copy; 2021 Arthur Barroso</footer></div></body><script src="/js/clojure_highlighter.js"></script><script>document.addEventListener('DOMContentLoaded', (event) => {
       document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
           hljs.highlightElement(el);
       });
-  });
-</script>
-</body>
-</html>
+     });</script></html>

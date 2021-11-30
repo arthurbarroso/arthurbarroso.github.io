@@ -41,16 +41,40 @@
      (fn [_req]
        {:body (slurp "./docs/index.html")})}}])
 
+(defn get-archives-page []
+  ["/archives"
+   {:get
+    {:handler
+     (fn [_req]
+       {:body (slurp "./docs/archives.html")})}}])
+
+(defn get-about-page []
+  ["/about"
+   {:get
+    {:handler
+     (fn [_req]
+       {:body (slurp "./docs/about.html")})}}])
+
+(defn get-collage-page []
+  ["/collage"
+   {:get
+    {:handler
+     (fn [_req]
+       {:body (slurp "./docs/collage.html")})}}])
+
 (defn serve []
   (ring/ring-handler
    (ring/router
     [""
      (get-posts-pages)
      (get-index-page)
+     (get-archives-page)
+     (get-about-page)
+     (get-collage-page)
      (asset-route)])
    (ring/create-default-handler)))
 
-(def server (atom nil))
+(defonce server (atom nil))
 
 (defn start! []
   (reset! server
@@ -59,16 +83,6 @@
 (defn stop! []
   (reset! server
           (.stop @server)))
-
-;; (defn- auto-reset-handler [ctx _event]
-;;   (binding [*ns* *ns*]
-;;     (stop!)
-;;     (start!)
-;;     ctx))
-
-;; (defn watch! []
-;;   (hawk/watch! [{:paths ["posts"]
-;;                  :handler auto-reset-handler}]))
 
 (comment
   (start!)
