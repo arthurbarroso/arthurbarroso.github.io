@@ -54,7 +54,7 @@ I work at a consultancy company and we often run squad health checks. We've been
 
 Creating and developing my own application wasn't easy: I ended up trying many different approaches to stuff, which I think was a great way to learn Clojure and some of its libraries:
 - I first tried creating an authenticated-only application, which I later decided wasn't good (I didn't really need auth for the app I was building)
-- Tried using `next.jdb`, but I felt like I could learn more about other stuff, which led me into trying other "database libraries"
+- Tried using `next.jdbc`, but I felt like I could learn more about other stuff, which led me into trying other "database libraries"
 - Adopted `datahike` for my database connection and started to learn it.
 - Made the client offline-first by storing all the data to a datascript db and persisting it to local storage but ended up removing it since it wasn't that useful
 - [Pre-rendered stuff using etaoin but didn't really enjoy it and decided to try and pre-render it "manually"](https://www.arthurbrrs.me/prerendering-react-clojurescript-land.html)
