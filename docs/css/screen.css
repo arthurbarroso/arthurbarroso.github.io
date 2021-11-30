@@ -1,6 +1,6 @@
 @import url(https://cdn.jsdelivr.net/npm/firacode@6.0.0/distr/fira_code.css);
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5 {
     font-family: 'Roboto', sans-serif;
 }
 
@@ -92,20 +92,6 @@ footer {
     padding-bottom: 30px;
 }
 
-blockquote footer {
-    text-align: left;
-    padding-top: 0px;
-    padding-bottom: 0px;
-}
-
-#post-tags {
-    margin-top: 30px;
-}
-
-#prev-next {
-    padding: 15px 0;
-}
-
 .post-header {
     margin-bottom: 20px;
 }
@@ -139,9 +125,6 @@ pre {
 @media (min-width: 768px) {
     .navbar {
         min-height: 70px;
-    }
-    .navbar-nav>li>a {
-        padding: 30px 20px;
     }
     #content{
         margin-top: 30px;
