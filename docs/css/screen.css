@@ -45,8 +45,11 @@ code { font-family: 'Fira Code', monospace; }
 
 .navbar-header a {
   color: #333;
-  margin-right: 12px;
   text-decoration: none;
+}
+
+.navbar-link {
+  margin-right: 12px;
 }
 
 .navbar-header .navbar-title {
@@ -58,10 +61,18 @@ code { font-family: 'Fira Code', monospace; }
   color: #5e5e5e;
 }
 
+.navbar-title a{
+  margin: 0;
+}
+
 .navbar-header .navbar-list {
   list-style: none;
   display: flex;
   text-transform: lowercase;
+}
+
+.navbar-list {
+  padding: 0;
 }
 
 .continue-reading {
