@@ -57,3 +57,16 @@ jobs:
 
        - name: Generate posts
          run: clojure -X:generate
+
+       - name: Add generated posts to git
+         run: |
+           git config --local user.name "arthurbarroso"
+           git add .
+           git commit -m "CI: generating posts"
+
+       - name: Push generated posts
+         uses: ad-m/github-push-action@master
+         with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           force: true
+           # branch: ${{ github.ref }}
