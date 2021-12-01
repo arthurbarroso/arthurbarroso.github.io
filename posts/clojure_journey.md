@@ -9,7 +9,7 @@ I've been learning Functional Programming for quite some time: I studied a bit o
 
 Clojure is a really nice language and the whole "REPL oriented development" thing is magic, but it took me some time to actually enjoy the language and learn what the REPL meant for the whole development experience. I'll use this post to talk a little about my Clojure(script) journey and how I eventually started loving it.
 
-This post talks solely about my experience.
+This post talks solely about my own experience.
 
 ## Table of contents:
 1. [The start](#start)
@@ -60,7 +60,6 @@ Creating and developing my own application wasn't easy: I ended up trying many d
 - [Pre-rendered stuff using etaoin but didn't really enjoy it and decided to try and pre-render it "manually"](https://www.arthurbrrs.me/prerendering-react-clojurescript-land.html)
 - Tried creating a "native executable" of my application using Graal, and after many tries was able to do it
 - [Set up DOM tests using shadow-cljs and Reagent](https://www.arthurbrrs.me/prerendering-react-clojurescript-land.html)
-
 
 ### Closing thoughts <a name="closing"></a>
 
