@@ -10,9 +10,9 @@
      [:h2 "archives"]]
     [:ul
      (for [post posts]
-       [:li (:date post)
+       [:li (str (:date post) " ")
         [:a {:href (:uri post)}
-         (str " " (:title post))]])]]})
+         (:title post)]])]]})
 
 (defn archives-page [posts]
   (h/html
