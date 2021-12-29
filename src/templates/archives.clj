@@ -12,7 +12,7 @@
      (for [post posts]
        [:li (:date post)
         [:a {:href (:uri post)}
-         (:title post)]])]]})
+         (str " " (:title post))]])]]})
 
 (defn archives-page [posts]
   (h/html
