@@ -31,6 +31,6 @@
     "rollup-plugin-terser": "^7.0.2"
   },
   "scripts": {
-    "css": "postcss docs/css/screen.css --dir docs/css/"
+    "css": "postcss docs/screen.css --dir docs/css/"
   }
 }

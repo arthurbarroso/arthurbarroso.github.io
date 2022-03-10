@@ -1,6 +1,7 @@
 Some of the digital collage stuff I still have. May be able to find some more of my old stuff someday. Also plan on updating this page with new ones.
 
 
+![22](/img/collage/greaze.png)
 ![2](/img/collage/a77PlrN.png)
 ![18](img/collage/c4.jpeg)
 ![13](/img/collage/stuffed.png)
