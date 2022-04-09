@@ -142,16 +142,16 @@
                         :description "about"
                         :content (:parsed-content page)})))))
 
-(defn render-collage []
-  (let [raw-content (slurp "./pages/collage.md")
-        page (post->html {:raw-content
-                          raw-content})]
-    (spit "./docs/collage.html"
-          (page-template/build-page
-           (merge page
-                  {:title "((arthur barroso))"
-                   :description "collage"
-                   :content (:parsed-content page)})))))
+#_(defn render-collage []
+    (let [raw-content (slurp "./pages/collage.md")
+          page (post->html {:raw-content
+                            raw-content})]
+      (spit "./docs/collage.html"
+            (page-template/build-page
+             (merge page
+                    {:title "((arthur barroso))"
+                     :description "collage"
+                     :content (:parsed-content page)})))))
 
 (defn render-404 []
   (spit "./docs/404.html"
@@ -170,7 +170,7 @@
       (render-home posts)
       (render-404)
       (render-about)
-      (render-collage)
+      #_(render-collage)
       (create-sitemap)))
   (let [translations (get-translations)]
     (doseq [t translations]

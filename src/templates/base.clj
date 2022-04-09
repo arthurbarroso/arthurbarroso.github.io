@@ -61,7 +61,7 @@
      [:div
       [:div {:id "content"}
        content]]]
-    [:footer "Copyright &copy; 2021 Arthur Barroso"]]])
+    [:footer "Copyright &copy; 2022 Arthur Barroso"]]])
 
 (defn base [{:keys [description subtitle uri]} content]
   [:html {:xmlns "http://www.w3.org/1999/xhtml"
