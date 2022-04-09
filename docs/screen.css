@@ -140,9 +140,15 @@ pre {
     .navbar {
         min-height: 70px;
     }
+
+    .navbar-list {
+      margin-left: 3%;
+    }
+
     .navbar-nav>li>a {
         padding: 30px 20px;
     }
+
     #content{
         margin-top: 30px;
         padding: 30px 40px;
@@ -159,12 +165,13 @@ pre {
     }
 
     .navbar-list {
-        margin-top: 8%;
+        margin-top: 5%;
     }
 
     #content{
         padding: 15px;
     }
+
     #post-meta .right {
         float:left;
         text-align: left;
