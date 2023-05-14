@@ -9,7 +9,8 @@
             [templates.home :as home]
             [templates.404 :as page-404]
             [templates.page :as page-template]
-            [templates.sitemap :as sitemap-template]))
+            [templates.sitemap :as sitemap-template]
+            [templates.rss :as rss-template]))
 
 (defn now []
   (->> (t/zoned-date-time)
@@ -142,17 +143,6 @@
                         :description "about"
                         :content (:parsed-content page)})))))
 
-#_(defn render-collage []
-    (let [raw-content (slurp "./pages/collage.md")
-          page (post->html {:raw-content
-                            raw-content})]
-      (spit "./docs/collage.html"
-            (page-template/build-page
-             (merge page
-                    {:title "((arthur barroso))"
-                     :description "collage"
-                     :content (:parsed-content page)})))))
-
 (defn render-404 []
   (spit "./docs/404.html"
         page-404/not-found-page))
@@ -162,6 +152,11 @@
     (spit "./docs/sitemap.xml"
           (sitemap-template/build-sitemap posts (now)))))
 
+(defn create-rss-feed []
+  (let [posts (get-posts)]
+    (spit "./docs/feed.xml"
+          (rss-template/build-rss posts (now)))))
+
 (defn render-all [& _args]
   (let [posts (get-posts)]
     (doseq [p posts]
@@ -170,8 +165,8 @@
       (render-home posts)
       (render-404)
       (render-about)
-      #_(render-collage)
-      (create-sitemap)))
+      (create-sitemap)
+      (create-rss-feed)))
   (let [translations (get-translations)]
     (doseq [t translations]
       (spit-translation t (render-post t)))))
