@@ -1,4 +1,4 @@
-This blog talks mainly about stuff that appeal to me: Clojure, Elixir, functional programming, skateboarding and digital collage.
+This blog talks mainly about stuff that appeal to me: Clojure, functional programming, infrastructure and other stuff
 
 #### Projects
 - [Brundij](https://github.com/arthurbarroso/brundij), an open-source platform for squad health checks. A fullstack application written in Clojure and Clojurescript.
