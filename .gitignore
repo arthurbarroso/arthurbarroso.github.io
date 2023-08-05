@@ -17,3 +17,4 @@ node_modules
 posts/.markdown-preview.html
 .projectile
 .nrepl-port
+.DS_Store

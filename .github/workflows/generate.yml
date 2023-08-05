@@ -58,14 +58,15 @@ jobs:
          run: npm i
 
        - name: Generate posts
-         run: clojure -X:generate
+         run: clojure -M:build
 
        - name: Run postcss
          run: npm run css
 
        - name: Add generated posts and minified css to git
          run: |
-           git config --local user.name "arthurbarroso"
+           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+           git config --local user.name "github-actions[bot]"
            git add .
            git commit -m "CI: generating posts"
 
