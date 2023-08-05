@@ -1,10 +1,21 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        ring/ring {:mvn/version "1.8.1"}
-        markdown-clj/markdown-clj {:mvn/version "1.10.6"}
-        metosin/reitit {:mvn/version "0.5.5"}
-        slugger/slugger {:mvn/version "1.0.1"}
-        tick/tick {:mvn/version "0.5.0-RC5"}
-        hiccup/hiccup {:mvn/version "1.0.5"}}
- :paths ["src" "posts" "templates" "resources" "translations"]
- :aliases {:generate {:ns-default core
-                      :exec-fn render-all}}}
+{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
+
+        ring-server/ring-server {:mvn/version "0.5.0"}
+        ring/ring-devel {:mvn/version "1.8.2"}
+        compojure/compojure {:mvn/version "1.6.2"}
+        cryogen-flexmark/cryogen-flexmark {:mvn/version "0.1.4"}
+        cryogen-core/cryogen-core {:mvn/version "0.4.0"}}
+
+ ;; :paths ["src" "posts" "templates" "resources" "translations"]
+ :aliases {:build {:main-opts ["-m" "blog.core"]}
+
+           :serve {:exec-fn blog.server/serve
+                   :exec-args {:port 3000}}
+
+           :fast {:exec-fn blog.server/serve
+                  :exec-args {:fast true}}
+
+           :nrepl {:extra-deps
+                   {nrepl/nrepl {:mvn/version "1.0.0"}}
+
+                   :main-opts ["-m" "nrepl.cmdline" "--interactive" "--color"]}}}
