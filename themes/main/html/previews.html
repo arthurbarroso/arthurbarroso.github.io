@@ -1,0 +1,18 @@
+{% extends "/html/base.html" %}
+{% block content %}
+{% for post in posts %}
+<div id="post" class="post">
+    <div class="post-header">
+        <a class="post-header-link" href="{{post.uri}}">{{post.title}}</a>
+        <div id="post-meta">
+            {% if post.author %}
+            <div class="author">{{post.author}}</div>
+            {% endif %}
+            <div class="date">{{post.date|date:longDate}}</div>
+        </div>
+    </div>
+    {{post.content|safe}}
+    <a href="{{post.uri}}">Continue reading &#8594;</a>
+</div>
+{% endfor %}
+{% endblock %}

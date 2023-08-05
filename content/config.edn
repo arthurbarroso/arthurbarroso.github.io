@@ -1,0 +1,38 @@
+{:site-title                   "(arthur barroso)"
+ :author                       "Arthur Barroso"
+ :description                  "A blog about software"
+ :site-url                     "https://arthurbrrs.me"
+ :post-root                    "posts"
+ :page-root                    "pages"
+ :post-root-uri                ""
+ :page-root-uri                ""
+ :tag-root-uri                 "tags-output"
+ :author-root-uri              "authors-output"
+ :public-dest                  "docs"
+ :blog-prefix                  ""
+ :rss-name                     "feed.xml"
+ :rss-filters                  ["blog"]
+ :recent-posts                 3
+ :post-date-format             "yyyy-MM-dd"
+ :archive-group-format         "yyyy"
+ :sass-src                     []
+ :sass-path                    "sass"
+ :theme                        "main"
+ :resources                    ["img"]
+ :keep-files                   [".git" "CNAME"]
+ :disqus?                      false
+ :disqus-shortname             ""
+ :ignored-files                [#"\.#.*" #".*\.swp$"]
+ :previews?                    true
+ :posts-per-page               5
+ :blocks-per-preview           2
+ :clean-urls                   :no-trailing-slash
+ :collapse-subdirs?            false
+ :hide-future-posts?           true
+ :klipse                       {}
+ :description-include-elements #{:p :h1 :h2 :h3 :h4 :h5 :h6}
+ :debug?                       false
+ :twitter-acct                 nil ;; change this to "your-twitter-handle" to enable auto twitter banners
+ :mastodon                     {:host nil ;; change this to the domain name of your mastodon host to generate a me-link
+                                :acct nil ;; change this to your mastodon account name to generate a me-link
+                                }}

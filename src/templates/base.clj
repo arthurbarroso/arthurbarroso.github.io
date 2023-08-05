@@ -35,38 +35,34 @@
    [:link {:rel "stylesheet" :href "/css/screen.css"}]
    [:title (build-title-subtitle subtitle)]])
 
+(def navbar
+  [:nav {:class "navbar"}
+   [:div {:class "container"}
+    [:div {:class "navbar-header"}
+     [:a {:class "navbar-title" :href "/"}
+      "((arthur barroso))"]
+     [:ul {:class "navbar-list"}
+      [:li
+       [:a {:class "navbar-link" :href "/archives"}
+        "archives"]
+       [:a {:class "navbar-link" :href "/collage"}
+        "collage"]
+       [:a {:class "navbar-link"
+            :href "/about"}
+        "about"]]]]]])
+
 (defn build-body [{:keys [content]}]
   [:body
-   [:nav {:class "navbar"}
-    [:div {:class "container"}
-     [:div {:class "navbar-header"}
-      [:a {:class "navbar-title"
-           :href "/"}
-       "((arthur barroso))"]
-      [:ul {:class "navbar-list"}
-       [:li
-        [:a {:class "navbar-link"
-             :href "/archives"}
-         "archives"]
-        [:a
-         {:class "navbar-link"
-          :href "/collage"}
-         "collage"]
-        [:a
-         {:class "navbar-link"
-          :href "/about"}
-         "about"]]]]]]
+   navbar
    [:div {:class "container"}
     [:div {:class "row"}
      [:div
       [:div {:id "content"}
        content]]]
-    [:footer "Copyright &copy; 2022 Arthur Barroso"]]])
+    [:footer "Copyright &copy; 2023 Arthur Barroso"]]])
 
 (defn base [{:keys [description subtitle uri]} content]
-  [:html {:xmlns "http://www.w3.org/1999/xhtml"
-          :lang "en"
-          :xml.lang "en"}
+  [:html {:xmlns "http://www.w3.org/1999/xhtml" :lang "en" :xml.lang "en"}
    (build-head {:description description
                 :uri uri
                 :content content

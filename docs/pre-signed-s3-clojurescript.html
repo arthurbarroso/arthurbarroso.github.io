@@ -1,289 +1,422 @@
-<html lang="en" xml.lang="en" xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8" /><meta content="A mini tutorial on how to upload files to AWS&apos;s S3 using pre-signed URLs in Clojure(script)" name="description" /><meta content="KLXtbzGXgE_BcqGEwJv7vCVH6-XMLskVDgd-rRVoZHg" name="google-site-verification" /><meta content="https://www.arthurbrrs.me/img/collage/publicint.png" property="og:image" /><meta content="clojure" name="keywords" /><meta content="width=device-width, initial-scale=1" name="viewport" /><meta content="shadow-cljs reagent re-frame react clojurescript clojure upload s3 pre-signed url" name="keywords" /><meta content="A mini tutorial on how to upload files to AWS&apos;s S3 using pre-signed URLs in Clojure(script)" name="description" /><meta content="A mini tutorial on how to upload files to AWS&apos;s S3 using pre-signed URLs in Clojure(script)" property="og:description" /><meta content="https://arthurbrrs.me/pre-signed-s3-clojurescript.html" property="og:url" /><meta content="Pre-signed uploads to AWS S3 using Clojure(script)" property="og:title" /><meta content="article" property="og:type" /><meta content="https://www.arthurbrrs.me/img/collage/publicint.png" property="og:image" /><link href="https://arthurbrrs.me/pre-signed-s3-clojurescript" rel="canonical" /><link href="css/favicon.ico" rel="shortcut icon" /><link href="https://fonts.googleapis.com" rel="preconnect" /><link crossorigin="crossorigin" href="https://fonts.gstatic.com" rel="preconnect" /><link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&amp;display=swap" rel="stylesheet" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github.min.css" rel="stylesheet" /><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script><link href="/css/screen.css" rel="stylesheet" /><title>((arthur barroso)): Pre-signed uploads to AWS S3 using Clojure(script)</title></head><body><nav class="navbar"><div class="container"><div class="navbar-header"><a class="navbar-title" href="/">((arthur barroso))</a><ul class="navbar-list"><li><a class="navbar-link" href="/archives">archives</a><a class="navbar-link" href="/collage">collage</a><a class="navbar-link" href="/about">about</a></li></ul></div></div></nav><div class="container"><div class="row"><div><div id="content"><div id="post"><div class="post-header"><div class="row" id="post-meta"><div class="col-lg-6">2022-01-24</div></div><h2>Pre-signed uploads to AWS S3 using Clojure(script)</h2><div><p>I've recently stumbled upon a task: uploading images from an input and saving those. This can be done in several ways, such as storing files directly to your server's storage, saving these files inside a database, or uploading them to some cloud provider's service, such as AWS's S3. There are various reasons one may choose each of these strategies, but I decided to stick with the latter.</p><p>From my previous JavaScript/React experience I knew this could be done using S3's <code>pre-signed URLs</code>, but didn't know how to do this in Clojure, even though the overall process/technique isn't much different.</p><h3>How a pre-signed upload works using S3:</h3><ul><li>your client-side application sends your server some metadata about the file.</li><li>the server validates the metadata (this is kind of optional though).</li><li>the server then responds with a unique URL that can be used to perform a request to S3 to upload this file.</li><li>the client uploads the image/file to S3 and sends the server the URL so it can be stored in some kind of database.</li></ul><p>This approach is nice because the file never gets sent to the server, which means we have less bandwidth consumption and there is something less for our server to deal with.</p><h3>Basic AWS setup:</h3><p>We'll want to go to AWS's console, create ourselves a user, give it S3 permissions and create a new S3 bucket. </p><p>I won't cover much of this in detail, but I'd like to add that we <em>need</em> to configure S3's CORS to get our uploads working. To do so, navigate to your bucket's <code>Permissions</code> tab, scroll down and change the CORS config so it matches this one:<pre><code class="json">&#91;
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>(arthur barroso): Pre-signed uploads to AWS S3 using Clojure(script)</title>
+    
+<meta name="keywords" content="dom,re-frame,clojure,aws,ssr,upload,clj-kondo,pre-signed-url,pre-render,reagent,emacs,doom-emacs,s3,clojure-lsp,parinfer,shadow-cljs,tests,m1,react,clojurescript">
+
+<meta name="description" content="I&#39;ve recently stumbled upon a task: uploading images from an input and saving those. This can be done in several ways, such as storing files directly to your server&#39;s storage, saving these files inside a database, or uploading them to some cloud provider&#39;s service, such as AWS&#39;s S3. There are various reasons one may choose each of these strategies, but I decided to stick with the latter.From my previous JavaScript/React experience I knew this could be done using S3&#39;s pre-signed URLs, but didn&#39;t know how to do this in Clojure, even though the overall process/technique isn&#39;t much different.">
+
+<meta property="og:description" content="I&#39;ve recently stumbled upon a task: uploading images from an input and saving those. This can be done in several ways, such as storing files directly to your server&#39;s storage, saving these files inside a database, or uploading them to some cloud provider&#39;s service, such as AWS&#39;s S3. There are various reasons one may choose each of these strategies, but I decided to stick with the latter.From my previous JavaScript/React experience I knew this could be done using S3&#39;s pre-signed URLs, but didn&#39;t know how to do this in Clojure, even though the overall process/technique isn&#39;t much different.">
+
+
+<meta property="og:url" content="https://arthurbrrs.me/pre-signed-s3-clojurescript" />
+<meta property="og:title" content="Pre-signed uploads to AWS S3 using Clojure(script)" />
+<meta property="og:type" content="article" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content="https://arthurbrrs.me/pre-signed-s3-clojurescript" />
+<meta name="twitter:title" content="Pre-signed uploads to AWS S3 using Clojure(script)" />
+<meta name="twitter:description" content="I&#39;ve recently stumbled upon a task: uploading images from an input and saving those. This can be done in several ways, such as storing files directly to your server&#39;s storage, saving these files inside a database, or uploading them to some cloud provider&#39;s service, such as AWS&#39;s S3. There are various reasons one may choose each of these strategies, but I decided to stick with the latter.From my previous JavaScript/React experience I knew this could be done using S3&#39;s pre-signed URLs, but didn&#39;t know how to do this in Clojure, even though the overall process/technique isn&#39;t much different." />
+
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link rel="canonical" href="https://arthurbrrs.me/pre-signed-s3-clojurescript">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,700&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <link href="css/favicon.ico" rel="shortcut icon">
+    <link href="/css/screen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-title" href="/">(arthur barroso)</a>
+            <ul class="navbar-list">
+                <li>
+                    <a class="navbar-link" href="/">Home</a>
+                </li>
+                <li>
+                    <a class="navbar-link" href="/archives">Archives</a>
+                </li>
+                
+                <li>
+                    <a class="navbar-link" href="/about">about</a>
+                </li>
+                
+                <li>
+                    <a class="navbar-link" href="/collage">collage</a>
+                </li>
+                
+                <li>
+                    <a href="/feed.xml">RSS</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container">
+
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div id="content">
+                
+<div id="post" class="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <div class="col-lg-6">January 24, 2022</div>
+        
+    </div>
+    <h2>Pre-signed uploads to AWS S3 using Clojure(script)</h2>
+</div>
+<div>
+    
+    <p>I've recently stumbled upon a task: uploading images from an input and saving those. This can be done in several ways, such as storing files directly to your server's storage, saving these files inside a database, or uploading them to some cloud provider's service, such as AWS's S3. There are various reasons one may choose each of these strategies, but I decided to stick with the latter.</p><p>From my previous JavaScript/React experience I knew this could be done using S3's <code>pre-signed URLs</code>, but didn't know how to do this in Clojure, even though the overall process/technique isn't much different.</p><h3 id="how-a-pre-signed-upload-works-using-s3">How a pre-signed upload works using S3:</h3><ul><li>your client-side application sends your server some metadata about the file.</li><li>the server validates the metadata (this is kind of optional though).</li><li>the server then responds with a unique URL that can be used to perform a request to S3 to upload this file.</li><li>the client uploads the image/file to S3 and sends the server the URL so it can be stored in some kind of database.</li></ul><p>This approach is nice because the file never gets sent to the server, which means we have less bandwidth consumption and there is something less for our server to deal with.</p><h3 id="basic-aws-setup">Basic AWS setup:</h3><p>We'll want to go to AWS's console, create ourselves a user, give it S3 permissions and create a new S3 bucket.</p><p>I won't cover much of this in detail, but I'd like to add that we <em>need</em> to configure S3's CORS to get our uploads working. To do so, navigate to your bucket's <code>Permissions</code> tab, scroll down and change the CORS config so it matches this one:</p><pre><code class="json">[
     {
-        &quot;AllowedHeaders&quot;: &#91;
-            &quot;&#42;&quot;
-        &#93;,
-        &quot;AllowedMethods&quot;: &#91;
-            &quot;HEAD&quot;,
-            &quot;GET&quot;,
-            &quot;PUT&quot;,
-            &quot;POST&quot;,
-            &quot;DELETE&quot;
-        &#93;,
-        &quot;AllowedOrigins&quot;: &#91;
-            &quot;&#42;&quot;
-        &#93;,
-        &quot;ExposeHeaders&quot;: &#91;
-            &quot;ETag&quot;
-        &#93;
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "HEAD",
+            "GET",
+            "PUT",
+            "POST",
+            "DELETE"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [
+            "ETag"
+        ]
     }
-&#93;
-</code></pre></p><p>Please beware this is a development configuration and you'll need to tweak it for your purposes and production deployments.</p><h3>The Clojure backend</h3><p>To start it off, we'll need a server. I'll use Reitit and Ring to do this and won't show much of the application's boilerplate in here, but all of the code for this post can be found in this <a href='https://github.com/arthurbarroso/s3-upload-blog-demo'>repository</a>. With a very basic server setup, we'll want to add <a href='https://github.com/mcohen01/amazonica'><code>amazonica</code></a> to our dependencies -I first wanted to use cognitec's <a href='https://github.com/cognitect-labs/aws-api'>aws-api</a>, but it offers no support for generating S3 pre-signed URLs. I am using <code>deps.edn</code>, so this can be done by adding <code>amazonica/amazonica {:mvn/version &quot;0.3.157&quot;}</code> to my dependencies. With the library added, it is time to go create our handlers, routes, and controllers. Please beware I have also created files called <code>contracts</code> and <code>schemas</code>, but its only purposes are to allow Reitit to coerce data and to help me annotate functions using malli.<pre><code class="clj">&#40;ns blog.s3.contracts&#41;
+]
+</code></pre><p>Please beware this is a development configuration and you'll need to tweak it for your purposes and production deployments.</p><h3 id="the-clojure-backend">The Clojure backend</h3><p>To start it off, we'll need a server. I'll use Reitit and Ring to do this and won't show much of the application's boilerplate in here, but all of the code for this post can be found in this <a href="https://github.com/arthurbarroso/s3-upload-blog-demo">repository</a>. With a very basic server setup, we'll want to add <a href="https://github.com/mcohen01/amazonica"><code>amazonica</code></a> to our dependencies -I first wanted to use cognitec's <a href="https://github.com/cognitect-labs/aws-api">aws-api</a>, but it offers no support for generating S3 pre-signed URLs. I am using <code>deps.edn</code>, so this can be done by adding <code>amazonica/amazonica {:mvn/version "0.3.157"}</code> to my dependencies. With the library added, it is time to go create our handlers, routes, and controllers. Please beware I have also created files called <code>contracts</code> and <code>schemas</code>, but its only purposes are to allow Reitit to coerce data and to help me annotate functions using malli.</p><pre><code class="clj">(ns blog.s3.contracts)
 
-&#40;def S3PresignedUrlData
-  &#91;:map
-   &#91;:file-size number?&#93;
-   &#91;:file-key string?&#93;
-   &#91;:file-type string?&#93;&#93;&#41;
+(def S3PresignedUrlData
+  [:map
+   [:file-size number?]
+   [:file-key string?]
+   [:file-type string?]])
 
-&#40;def S3UploadedData
-  &#91;:map
-   &#91;:file-url string?&#93;
-   &#91;:username string?&#93;
-   &#91;:title string?&#93;&#93;&#41;
-</code></pre></p><p>The <code>S3PresignedUrlData</code> contract/structure defines what we'll receive when trying to generate a pre-signed URL: we'll want the file's size, its key (which is the name it'll be given in the bucket) and its type. The <code>S3UploadedData</code> structure defines what we'll expect to receive when a file is uploaded -this is the step where we'd save this URL to some database with other info such as the user's name and a post's title.</p><pre><code class="clj">&#40;ns blog.s3.schemas&#41;
+(def S3UploadedData
+  [:map
+   [:file-url string?]
+   [:username string?]
+   [:title string?]])
+</code></pre><p>The <code>S3PresignedUrlData</code> contract/structure defines what we'll receive when trying to generate a pre-signed URL: we'll want the file's size, its key (which is the name it'll be given in the bucket) and its type. The <code>S3UploadedData</code> structure defines what we'll expect to receive when a file is uploaded -this is the step where we'd save this URL to some database with other info such as the user's name and a post's title.</p><pre><code class="clj">(ns blog.s3.schemas)
 
-&#40;def S3SignedURL
-  &#91;:or
-   &#91;:map
-    &#91;:s3/url string?&#93;&#93;
-   &#91;:map
-    &#91;:s3/error string?&#93;&#93;&#93;&#41;
-</code></pre><p>The <code>generate-upload-url!</code> handler will be able to return two types of maps: one containing a <code>s3/url</code> keyword (which would contain the pre-signed-url as its value) or a map containing an <code>s3/error</code> keyword with an error reason.</p><pre><code class="clj">&#40;ns blog.s3.handlers
-  &#40;:require &#91;amazonica.aws.s3 :as client&#93;
-            &#91;blog.s3.contracts :as c&#93;
-            &#91;blog.s3.schemas :as s&#93;&#41;&#41;
+(def S3SignedURL
+  [:or
+   [:map
+    [:s3/url string?]]
+   [:map
+    [:s3/error string?]]])
+</code></pre><p>The <code>generate-upload-url!</code> handler will be able to return two types of maps: one containing a <code>s3/url</code> keyword (which would contain the pre-signed-url as its value) or a map containing an <code>s3/error</code> keyword with an error reason.</p><pre><code class="clj">(ns blog.s3.handlers
+  (:require [amazonica.aws.s3 :as client]
+            [blog.s3.contracts :as c]
+            [blog.s3.schemas :as s]))
 
-&#40;def max-file-size 10000&#41;
-&#40;def allowed-file-types &#91;&quot;image/png&quot; &quot;image/jpg&quot; &quot;image/jpeg&quot;&#93;&#41;
+(def max-file-size 10000)
+(def allowed-file-types ["image/png" "image/jpg" "image/jpeg"])
 
-&#40;defn generate-signed-url &#91;environment file-key&#93;
-  &#40;let &#91;{:keys &#91;creds bucket&#93;} &#40;:s3 environment&#41;&#93;
-    {:s3/url &#40;client/generate-presigned-url creds {:bucket-name bucket
-                                                   :method &quot;PUT&quot;
-                                                   :key file-key}&#41;}&#41;&#41;
+(defn generate-signed-url [environment file-key]
+  (let [{:keys [creds bucket]} (:s3 environment)]
+    {:s3/url (client/generate-presigned-url creds {:bucket-name bucket
+                                                   :method "PUT"
+                                                   :key file-key})}))
 
-&#40;defn generate-upload-url!
-  {:malli/schema &#91;:=&gt; &#91;:cat c/S3PresignedUrlData :any&#93; s/S3SignedURL&#93;}
-  &#91;s3-data environment&#93;
-  &#40;let &#91;{:keys &#91;file-type file-size file-key&#93;} s3-data&#93;
-    &#40;if &#40;and &#40;&lt; file-size max-file-size&#41; &#40;some #&#40;= file-type %&#41; allowed-file-types&#41;&#41;
-      &#40;generate-signed-url environment file-key&#41;
-      {:s3/error &quot;Invalid file&quot;}&#41;&#41;&#41;
-</code></pre><p>We set the maximum file size to 10000 (this is in KBs, since we will send the file size in KBs from the client), set the allowed file types to accept a few image types, and then check if the file the client is trying to upload matches these constraints. If the file conforms to our specifications, the application responds with a pre-signed URL.</p><pre><code class="clj">&#40;ns blog.s3.controllers
-  &#40;:require &#91;blog.s3.handlers :as h&#93;
-            &#91;ring.util.response :as rr&#93;&#41;&#41;
+(defn generate-upload-url!
+  {:malli/schema [:=&gt; [:cat c/S3PresignedUrlData :any] s/S3SignedURL]}
+  [s3-data environment]
+  (let [{:keys [file-type file-size file-key]} s3-data]
+    (if (and (&lt; file-size max-file-size) (some #(= file-type %) allowed-file-types))
+      (generate-signed-url environment file-key)
+      {:s3/error "Invalid file"})))
+</code></pre><p>We set the maximum file size to 10000 (this is in KBs, since we will send the file size in KBs from the client), set the allowed file types to accept a few image types, and then check if the file the client is trying to upload matches these constraints. If the file conforms to our specifications, the application responds with a pre-signed URL.</p><pre><code class="clj">(ns blog.s3.controllers
+  (:require [blog.s3.handlers :as h]
+            [ring.util.response :as rr]))
 
-&#40;defn generate-upload-url-controller! &#91;environment&#93;
-  &#40;fn &#91;request&#93;
-    &#40;let &#91;file-input &#40;-&gt; request :parameters :body&#41;
-          upload-url &#40;h/generate-upload-url!
+(defn generate-upload-url-controller! [environment]
+  (fn [request]
+    (let [file-input (-&gt; request :parameters :body)
+          upload-url (h/generate-upload-url!
                       file-input
-                      environment&#41;&#93;
-      &#40;if &#40;:s3/url upload-url&#41;
-        &#40;rr/response upload-url&#41;
-        &#40;rr/bad-request {:error &quot;Something went wrong&quot;}&#41;&#41;&#41;&#41;&#41;
+                      environment)]
+      (if (:s3/url upload-url)
+        (rr/response upload-url)
+        (rr/bad-request {:error "Something went wrong"})))))
 
-&#40;defn respond-uploaded-data-controller! &#91;&#95;environment&#93;
-  &#40;fn &#91;request&#93;
-    &#40;let &#91;req-body &#40;-&gt; request :parameters :body&#41;&#93;
-      &#40;rr/response req-body&#41;&#41;&#41;&#41;
-</code></pre><p>The <code>generate-upload-url-controller!</code> function returns a function, that then takes a request. The request is then processed and we respond with 200 if a pre-signed url gets generated or 400 if it fails our verification system.</p><pre><code class="clj">&#40;ns blog.s3.routes
-  &#40;:require &#91;blog.s3.contracts :as c&#93;
-            &#91;blog.s3.controllers :as co&#93;&#41;&#41;
+(defn respond-uploaded-data-controller! [_environment]
+  (fn [request]
+    (let [req-body (-&gt; request :parameters :body)]
+      (rr/response req-body))))
+</code></pre><p>The <code>generate-upload-url-controller!</code> function returns a function, that then takes a request. The request is then processed and we respond with 200 if a pre-signed url gets generated or 400 if it fails our verification system.</p><pre><code class="clj">(ns blog.s3.routes
+  (:require [blog.s3.contracts :as c]
+            [blog.s3.controllers :as co]))
 
-&#40;defn routes &#91;environment&#93;
-  &#91;&quot;/s3&quot;
-   &#91;&quot;/generate&quot;
-    {:post {:handler &#40;co/generate-upload-url-controller! environment&#41;
-            :parameters {:body c/S3PresignedUrlData}}}&#93;
-   &#91;&quot;/store&quot;
-    {:post {:handler &#40;co/respond-uploaded-data-controller! environment&#41;
-            :parameters {:body c/S3UploadedData}}}&#93;&#93;&#41;
-</code></pre><p>The above code should be enough for our server. Please note the environment should contain your AWS credentials and failing to provide those will raise no error, so you'll probably want to check those. For this post, I decided to hardcode my env vars, but you'll probably want to use something like <a href='https://github.com/juxt/aero'>aero</a> in your apps.</p><h3>The Clojurescript client</h3><p>It is now time to create the client: I decided to use re-frame and shadow-cljs to build it. We'll dispatch the file uploads from within re-frame.</p><p>We'll be creating a form that accepts a few fields:</p><ul><li>A <code>username</code> field that accepts a string (text)</li><li>A <code>title</code> field that accepts a string (text)</li><li>An input that accepts images.</li></ul><p>Since we're using re-frame, it may be nice to handle these input's states from within re-frame itself. Let's create subscriptions and events to handle this:<pre><code class="clj">&#40;ns blog.client.subs
-  &#40;:require &#91;re-frame.core :as re-frame&#93;&#41;&#41;
+(defn routes [environment]
+  ["/s3"
+   ["/generate"
+    {:post {:handler (co/generate-upload-url-controller! environment)
+            :parameters {:body c/S3PresignedUrlData}}}]
+   ["/store"
+    {:post {:handler (co/respond-uploaded-data-controller! environment)
+            :parameters {:body c/S3UploadedData}}}]])
+</code></pre><p>The above code should be enough for our server. Please note the environment should contain your AWS credentials and failing to provide those will raise no error, so you'll probably want to check those. For this post, I decided to hardcode my env vars, but you'll probably want to use something like <a href="https://github.com/juxt/aero">aero</a> in your apps.</p><h3 id="the-clojurescript-client">The Clojurescript client</h3><p>It is now time to create the client: I decided to use re-frame and shadow-cljs to build it. We'll dispatch the file uploads from within re-frame.</p><p>We'll be creating a form that accepts a few fields:</p><ul><li>A <code>username</code> field that accepts a string (text)</li><li>A <code>title</code> field that accepts a string (text)</li><li>An input that accepts images.</li></ul><p>Since we're using re-frame, it may be nice to handle these input's states from within re-frame itself. Let's create subscriptions and events to handle this:</p><pre><code class="clj">(ns blog.client.subs
+  (:require [re-frame.core :as re-frame]))
 
-&#40;re-frame/reg-sub
+(re-frame/reg-sub
  ::file-form-values
- &#40;fn &#91;db&#93;
-   &#40;get-in db &#91;:forms :file-form&#93;&#41;&#41;&#41;
-</code></pre></p><pre><code class="clj">&#40;ns blog.client.events
-  &#40;:require &#91;re-frame.core :as re-frame&#93;
-            &#91;ajax.core :as ajax&#93; ;; the following dependencies 
-            &#91;day8.re-frame.http-fx&#93; ;;will be needed to handle 
-            &#91;clojure.string :as string&#93;&#41;&#41; ;; the upload and such :&#41;
+ (fn [db]
+   (get-in db [:forms :file-form])))
+</code></pre><pre><code class="clj">(ns blog.client.events
+  (:require [re-frame.core :as re-frame]
+            [ajax.core :as ajax] ;; the following dependencies 
+            [day8.re-frame.http-fx] ;;will be needed to handle 
+            [clojure.string :as string])) ;; the upload and such :)
 
-&#40;re-frame/reg-event-db
+(re-frame/reg-event-db
  ::initialize-db
- &#40;fn &#91;&#95;&#93;
+ (fn [_]
    {:forms {:file-form {:title nil
                         :username nil
-                        :file-url nil}}}&#41;&#41;
+                        :file-url nil}}}))
 
-&#40;re-frame/reg-event-db
+(re-frame/reg-event-db
  ::set-file-form-field-value
- &#40;fn &#91;db &#91;&#95; field-path new-value&#93;&#93;
-   &#40;assoc-in db &#91;:forms :file-form field-path&#93; new-value&#41;&#41;&#41;
-</code></pre><p>With the base events and subscriptions we'll move to our form and our image-picker component:<pre><code class="clj">&#40;ns blog.client.form
-  &#40;:require &#91;reagent.core :as r&#93;
-            &#91;re-frame.core :as re-frame&#93;
-            &#91;blog.client.subs :as subs&#93;
-            &#91;blog.client.events :as events&#93;&#41;&#41;
+ (fn [db [_ field-path new-value]]
+   (assoc-in db [:forms :file-form field-path] new-value)))
+</code></pre><p>With the base events and subscriptions we'll move to our form and our image-picker component:</p><pre><code class="clj">(ns blog.client.form
+  (:require [reagent.core :as r]
+            [re-frame.core :as re-frame]
+            [blog.client.subs :as subs]
+            [blog.client.events :as events]))
 
-&#40;defn handle-image-data &#91;file file-key&#93;
-  {:file-type &#40;.-type file&#41;
-   :file-size &#40;-&gt; file
-                  &#40;.-size&#41;
-                  &#40;/ 1024&#41;
-                  .toFixed&#41;
-   :file-key &#40;str file-key &#40;.-name file&#41;&#41;
-   :file-name &#40;.-name file&#41;}&#41;
+(defn handle-image-data [file file-key]
+  {:file-type (.-type file)
+   :file-size (-&gt; file
+                  (.-size)
+                  (/ 1024)
+                  .toFixed)
+   :file-key (str file-key (.-name file))
+   :file-name (.-name file)})
 
-&#40;defn get-image-data &#91;input-id&#93;
-  &#40;let &#91;el &#40;.getElementById js/document input-id&#41;
-        file &#40;aget &#40;.-files el&#41; 0&#41;
-        form-data &#40;js/FormData.&#41;
-        &#95; &#40;.append form-data &quot;file&quot; file&#41;&#93;
+(defn get-image-data [input-id]
+  (let [el (.getElementById js/document input-id)
+        file (aget (.-files el) 0)
+        form-data (js/FormData.)
+        _ (.append form-data "file" file)]
     {:form-data form-data
-     :file file}&#41;&#41;
+     :file file}))
 
-&#40;defn generate-file-key &#91;{:keys &#91;title username&#93;}&#93;
-  &#40;str title &quot;-&quot; username &quot;-&quot;&#41;&#41;
+(defn generate-file-key [{:keys [title username]}]
+  (str title "-" username "-"))
 
-&#40;defn submit-image
-  &#91;data input-id&#93;
-  &#40;let &#91;{:keys &#91;form-data file&#93;} &#40;get-image-data input-id&#41;
-        file-key &#40;generate-file-key data&#41;&#93;
-    &#40;assoc
-     &#40;handle-image-data file file-key&#41;
-     :file form-data&#41;&#41;&#41;
+(defn submit-image
+  [data input-id]
+  (let [{:keys [form-data file]} (get-image-data input-id)
+        file-key (generate-file-key data)]
+    (assoc
+     (handle-image-data file file-key)
+     :file form-data)))
 
-&#40;defn image-selector
-  &#91;input-id&#93;
-  &#40;let &#91;UPLOADED-IMAGE &#40;r/atom nil&#41;&#93;
-    &#40;fn &#91;&#93;
-      &#91;:div
-       &#91;:input {:type &quot;file&quot;
+(defn image-selector
+  [input-id]
+  (let [UPLOADED-IMAGE (r/atom nil)]
+    (fn []
+      [:div
+       [:input {:type "file"
                 :id input-id
                 :value @UPLOADED-IMAGE
-                :on-change #&#40;reset! UPLOADED-IMAGE
-				     &#40;-&gt; % .-target .-value&#41;&#41;
-                :accept &quot;image/&#42;&quot;}&#93;
-       &#91;:label {:htmlFor input-id}
-        &#40;if @UPLOADED-IMAGE
-          &quot;File added 🥳&quot;
-          &quot;Upload image&quot;&#41;&#93;&#93;&#41;&#41;&#41;
+                :on-change #(reset! UPLOADED-IMAGE
+				     (-&gt; % .-target .-value))
+                :accept "image/*"}]
+       [:label {:htmlFor input-id}
+        (if @UPLOADED-IMAGE
+          "File added 🥳"
+          "Upload image")]])))
 
-&#40;defn file-creation-handler &#91;data input-id&#93;
-  &#40;let &#91;image-data &#40;submit-image data input-id&#41;
-        submit-data &#40;merge data image-data&#41;&#93;
-    &#40;re-frame/dispatch
-     &#91;::events/create-file submit-data&#93;&#41;&#41;&#41;
+(defn file-creation-handler [data input-id]
+  (let [image-data (submit-image data input-id)
+        submit-data (merge data image-data)]
+    (re-frame/dispatch
+     [::events/create-file submit-data])))
 
-&#40;defn file-form &#91;&#93;
-  &#40;let &#91;form-values &#40;re-frame/subscribe &#91;::subs/file-form-values&#93;&#41;
-        image-picker-input-id &quot;woooo&quot;&#93;
-    &#40;fn &#91;&#93;
-      &#91;:form {:onSubmit &#40;fn &#91;e&#93;
-                          &#40;do &#40;.preventDefault e&#41;
-                              &#40;file-creation-handler 
-	@form-values image-picker-input-id&#41;&#41;&#41;}
-       &#91;:label {:htmlFor &quot;title-input&quot;}
-        &quot;Title&quot;&#93;
-       &#91;:input {:type &quot;text&quot;
-                :id &quot;title-input&quot;
-                :value &#40;:title @form-values&#41;
-                :on-change #&#40;re-frame/dispatch 
-					 &#91;::events/set-file-form-field-value
-                      :title &#40;-&gt; % .-target .-value&#41;&#93;&#41;}&#93;
-       &#91;:label {:htmlFor &quot;username-input&quot;}
-        &quot;Username&quot;&#93;
-       &#91;:input {:type &quot;text&quot;
-                :id &quot;username-input&quot;
-                :value &#40;:username @form-values&#41;
-                :on-change #&#40;re-frame/dispatch 
-					&#91;::events/set-file-form-field-value
-					 :username &#40;-&gt; % .-target .-value&#41;&#93;&#41;}&#93;
-       &#91;image-selector image-picker-input-id&#93;
-       &#91;:button {:type &quot;submit&quot;
-                 :on-click #&#40;&#41;}
-        &quot;Submit&quot;&#93;&#93;&#41;&#41;&#41;
-</code></pre></p><p>Okay, that's a big step, so lets walk through it:</p><ul><li><code>handle-image-data</code> is a function that takes in a file and it's key (which is the name the fill will receive at S3's bucket). It basically creates a map from the file's properties.</li><li><code>get-image-data</code> takes in an input-id, queries the dom for this input, gets the first file from that input and creates a <code>FormData</code> object with this file. It then returns a map with the raw file and the form-data object.</li><li><code>generate-file-key</code> takes in the form's data to create a string containing the form data and the file name. This is an utility function to create somewhat unique file names. UUIDs could also be used to do this.</li><li><code>submit-iamge</code> takes in the form's data and the input id. It then uses <code>get-image-data</code> to get the raw file and the <code>FormData</code> object. It then generates a file-key and creates a map with the file's metadata and the form-data.</li><li>the <code>image-selector</code> is a Reagent component that handles it's state using a reagent atom. I decided to use an atom instead of re-frame's state because I don't really think the file is part of the application's state.</li><li><code>file-creation-handler</code> is a function that takes the form's data and the image-picker's input-id and dispatches the data to the re-frame we'll create soon.</li></ul><h4>The <code>create-file</code> re-frame event</h4><p>We'll start with a pretty straightforward re-frame-http-fx event:<pre><code class="clj">&#40;re-frame/reg-event-fx
+(defn file-form []
+  (let [form-values (re-frame/subscribe [::subs/file-form-values])
+        image-picker-input-id "woooo"]
+    (fn []
+      [:form {:onSubmit (fn [e]
+                          (do (.preventDefault e)
+                              (file-creation-handler 
+	@form-values image-picker-input-id)))}
+       [:label {:htmlFor "title-input"}
+        "Title"]
+       [:input {:type "text"
+                :id "title-input"
+                :value (:title @form-values)
+                :on-change #(re-frame/dispatch 
+					 [::events/set-file-form-field-value
+                      :title (-&gt; % .-target .-value)])}]
+       [:label {:htmlFor "username-input"}
+        "Username"]
+       [:input {:type "text"
+                :id "username-input"
+                :value (:username @form-values)
+                :on-change #(re-frame/dispatch 
+					[::events/set-file-form-field-value
+					 :username (-&gt; % .-target .-value)])}]
+       [image-selector image-picker-input-id]
+       [:button {:type "submit"
+                 :on-click #()}
+        "Submit"]])))
+</code></pre><p>Okay, that's a big step, so lets walk through it:</p><ul><li><code>handle-image-data</code> is a function that takes in a file and it's key (which is the name the fill will receive at S3's bucket). It basically creates a map from the file's properties.</li><li><code>get-image-data</code> takes in an input-id, queries the dom for this input, gets the first file from that input and creates a <code>FormData</code> object with this file. It then returns a map with the raw file and the form-data object.</li><li><code>generate-file-key</code> takes in the form's data to create a string containing the form data and the file name. This is an utility function to create somewhat unique file names. UUIDs could also be used to do this.</li><li><code>submit-iamge</code> takes in the form's data and the input id. It then uses <code>get-image-data</code> to get the raw file and the <code>FormData</code> object. It then generates a file-key and creates a map with the file's metadata and the form-data.</li><li>the <code>image-selector</code> is a Reagent component that handles it's state using a reagent atom. I decided to use an atom instead of re-frame's state because I don't really think the file is part of the application's state.</li><li><code>file-creation-handler</code> is a function that takes the form's data and the image-picker's input-id and dispatches the data to the re-frame we'll create soon.</li></ul><h4 id="the-create-file-re-frame-event">The <code>create-file</code> re-frame event</h4><p>We'll start with a pretty straightforward re-frame-http-fx event:</p><pre><code class="clj">(re-frame/reg-event-fx
  ::create-file
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; form-data&#93;&#93;
-   &#40;let &#91;{:keys &#91;file-type file-key file-size&#93;} form-data&#93;
-     {:db &#40;assoc db :loading true&#41;
+ (fn [{:keys [db]} [_ form-data]]
+   (let [{:keys [file-type file-key file-size]} form-data]
+     {:db (assoc db :loading true)
       :http-xhrio {:method :post
-                   :uri &quot;http://localhost:4000/v1/s3/generate&quot;
-                   :format &#40;ajax/json-request-format&#41;
+                   :uri "http://localhost:4000/v1/s3/generate"
+                   :format (ajax/json-request-format)
                    :timeout 8000
                    :params {:file-type file-type
                             :file-key file-key
-                            :file-size &#40;js/parseFloat file-size&#41;}
+                            :file-size (js/parseFloat file-size)}
                    :with-credentials true
-                   :response-format &#40;ajax/json-response-format {:keywords? true}&#41;
-                   :on-success &#91;::s3-url-success form-data&#93;
-                   :on-failure &#91;::s3-url-failure&#93;}}&#41;&#41;&#41;
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success [::s3-url-success form-data]
+                   :on-failure [::s3-url-failure]}})))
 
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::s3-url-failure
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; &#95;response&#93;&#93;
-   {:db &#40;assoc db :loading false&#41;}&#41;&#41;
+ (fn [{:keys [db]} [_ _response]]
+   {:db (assoc db :loading false)}))
 
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::s3-url-success
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; form-data response&#93;&#93;
-   &#40;let &#91;s3-url &#40;:s3/url response&#41;
-         params-index &#40;string/index-of s3-url &quot;?&quot;&#41;
-         file-url &#40;subs s3-url 0 params-index&#41;&#93;
-     &#40;cljs.pprint/pprint file-url&#41;
-     {:db &#40;assoc db :loading false&#41;}
-</code></pre></p><p>This event will then create a POST request to our server and try to create a pre-signed URL. In case it succeeds, we should be able to check the pre-signed URL being printed to the browser's console. If it prints, then you're probably doing it right (assuming you didn't mix up your credentials on the server), so it is now time to upload the file to the generated URL.</p><pre><code class="clj">&#40;re-frame/reg-event-fx
+ (fn [{:keys [db]} [_ form-data response]]
+   (let [s3-url (:s3/url response)
+         params-index (string/index-of s3-url "?")
+         file-url (subs s3-url 0 params-index)]
+     (cljs.pprint/pprint file-url)
+     {:db (assoc db :loading false)}
+</code></pre><p>This event will then create a POST request to our server and try to create a pre-signed URL. In case it succeeds, we should be able to check the pre-signed URL being printed to the browser's console. If it prints, then you're probably doing it right (assuming you didn't mix up your credentials on the server), so it is now time to upload the file to the generated URL.</p><pre><code class="clj">(re-frame/reg-event-fx
  ::s3-url-success
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; form-data response&#93;&#93;
-   &#40;let &#91;s3-url &#40;:s3/url response&#41;
-         params-index &#40;string/index-of s3-url &quot;?&quot;&#41;
-         file-url &#40;subs s3-url 0 params-index&#41;&#93;
-     &#40;cljs.pprint/pprint file-url&#41;
-     {:db &#40;assoc db :loading false&#41;
-      :dispatch &#91;::upload-file &#40;merge response form-data {:file-url file-url}&#41;&#93;}
+ (fn [{:keys [db]} [_ form-data response]]
+   (let [s3-url (:s3/url response)
+         params-index (string/index-of s3-url "?")
+         file-url (subs s3-url 0 params-index)]
+     (cljs.pprint/pprint file-url)
+     {:db (assoc db :loading false)
+      :dispatch [::upload-file (merge response form-data {:file-url file-url})]}
 ;; we need to first tell our `s3-url-success` to dispatch the event we're creating
       
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::upload-file
- &#40;fn &#91;&#95; &#91;&#95; data&#93;&#93;
+ (fn [_ [_ data]]
    {:http-xhrio {:method :put
-                 :uri &#40;:s3/url data&#41;
+                 :uri (:s3/url data)
                  :timeout 8000
-                 :body &#40;.get &#40;:file data&#41; &quot;file&quot;&#41;
-                 :headers {&quot;Content-Type&quot; &quot;image/&#42;&quot;}
-                 :response-format &#40;ajax/raw-response-format&#41;
-                 :on-success &#91;::upload-image-success data&#93;
-                 :on-failure &#91;::s3-url-failure&#93;}}&#41;&#41;
+                 :body (.get (:file data) "file")
+                 :headers {"Content-Type" "image/*"}
+                 :response-format (ajax/raw-response-format)
+                 :on-success [::upload-image-success data]
+                 :on-failure [::s3-url-failure]}}))
 
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::upload-image-success
- &#40;fn &#91;&#95; &#91;&#95; data &#95;response&#93;&#93;
-   &#40;cljs.pprint/pprint data&#41;
-   {}&#41;&#41;
-</code></pre><p>Now, hitting the submit button on the form should simply print our initial data to the console. You should check the <code>Requests</code> tab of your browser's devtools and find out whether the PUT request succeeded. In case it did, it is time to move forward.</p><pre><code class="clj">&#40;re-frame/reg-event-fx
+ (fn [_ [_ data _response]]
+   (cljs.pprint/pprint data)
+   {}))
+</code></pre><p>Now, hitting the submit button on the form should simply print our initial data to the console. You should check the <code>Requests</code> tab of your browser's devtools and find out whether the PUT request succeeded. In case it did, it is time to move forward.</p><pre><code class="clj">(re-frame/reg-event-fx
  ::upload-image-success
- &#40;fn &#91;&#95; &#91;&#95; data &#95;response&#93;&#93;
-   {:dispatch &#91;::send-server-uploaded-file data&#93;}&#41;&#41;
+ (fn [_ [_ data _response]]
+   {:dispatch [::send-server-uploaded-file data]}))
 
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::send-server-uploaded-file
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; {:keys &#91;file-url title username&#93;}&#93;&#93;
-   {:db &#40;assoc db :loading true&#41;
+ (fn [{:keys [db]} [_ {:keys [file-url title username]}]]
+   {:db (assoc db :loading true)
     :http-xhrio {:method :post
-                 :uri &quot;http://localhost:4000/v1/s3/store&quot;
-                 :format &#40;ajax/json-request-format&#41;
+                 :uri "http://localhost:4000/v1/s3/store"
+                 :format (ajax/json-request-format)
                  :timeout 8000
                  :params {:file-url file-url
                           :title title
                           :username username}
                  :with-credentials true
-                 :response-format &#40;ajax/json-response-format {:keywords? true}&#41;
-                 :on-success &#91;::store-success&#93;
-                 :on-failure &#91;::s3-url-failure&#93;}}&#41;&#41;
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success [::store-success]
+                 :on-failure [::s3-url-failure]}}))
 
-&#40;re-frame/reg-event-fx
+(re-frame/reg-event-fx
  ::store-success
- &#40;fn &#91;{:keys &#91;db&#93;} &#91;&#95; response&#93;&#93;
-   &#40;cljs.pprint/pprint response&#41;
-   {:db &#40;assoc db :loading false&#41;}&#41;&#41;
-</code></pre><p>We make sure <code>uploaded-image-success</code> dispatches <code>send-server-uploaded-file</code> passing it our data map. We then make a POST request to our server and sent it the file url. The server response should then be printed to the console.</p><h4>Related posts:</h4><p>There are two blog posts that helped me build my solution and served as the base for this post. These can be found in the links below.</p><ul><li><a href='https://tech.toryanderson.com/2021/11/06/uploading-files-and-handling-upload-requests-in-clojurescript/'>Uploading Files and Handling Upload Requests in Clojurescript</a> by Tory Anderson</li><li><a href='https://pablofernandez.tech/2017/05/11/pre-signed-s3-urls-with-clojure-and-clojurescript/'>Pre-signed S3 URLs with Clojure and ClojureScript</a> by Pablo Fernandez</li></ul><p>A big thank you to both authors 💖</p></div></div></div></div></div></div><footer>Copyright &copy; 2022 Arthur Barroso</footer></div></body><script src="/js/clojure_highlighter.js"></script><script>document.addEventListener('DOMContentLoaded', (event) => {
-      document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
-          hljs.highlightElement(el);
-      });
-     });</script></html>
+ (fn [{:keys [db]} [_ response]]
+   (cljs.pprint/pprint response)
+   {:db (assoc db :loading false)}))
+</code></pre><p>We make sure <code>uploaded-image-success</code> dispatches <code>send-server-uploaded-file</code> passing it our data map. We then make a POST request to our server and sent it the file url. The server response should then be printed to the console.</p><h4 id="related-posts">Related posts:</h4><p>There are two blog posts that helped me build my solution and served as the base for this post. These can be found in the links below.</p><ul><li><a href="https://tech.toryanderson.com/2021/11/06/uploading-files-and-handling-upload-requests-in-clojurescript/">Uploading Files and Handling Upload Requests in Clojurescript</a> by Tory Anderson</li><li><a href="https://pablofernandez.tech/2017/05/11/pre-signed-s3-urls-with-clojure-and-clojurescript/">Pre-signed S3 URLs with Clojure and ClojureScript</a> by Pablo Fernandez</li></ul><p>A big thank you to both authors 💖</p>
+</div>
+
+<div id="post-tags">
+    <b>Tags: </b>
+    
+    <a href="/tags-output/re-frame">re-frame</a>
+    
+    <a href="/tags-output/clojure">clojure</a>
+    
+    <a href="/tags-output/aws">aws</a>
+    
+    <a href="/tags-output/upload">upload</a>
+    
+    <a href="/tags-output/pre-signed-url">pre-signed-url</a>
+    
+    <a href="/tags-output/reagent">reagent</a>
+    
+    <a href="/tags-output/s3">s3</a>
+    
+    <a href="/tags-output/shadow-cljs">shadow-cljs</a>
+    
+    <a href="/tags-output/react">react</a>
+    
+    <a href="/tags-output/clojurescript">clojurescript</a>
+    
+</div>
+
+
+    <div id="prev-next">
+        
+        <a href="/clojure-doom-emacs-m1">&laquo; Clojure and Doom Emacs on a brand new M1 computer</a>
+        
+        
+        <a class="right" href="/prerendering-react-clojurescript-land">React prerendering experiments in Clojure(script) land &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+            </div>
+        </div>
+    </div>
+    <footer>Copyright &copy; 2023 Arthur Barroso
+        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+</div>
+<script src="/js/clojure_highlighter.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('pre code:not(.clj)').forEach((el) => {
+      hljs.highlightElement(el);
+    });
+  });
+</script>
+</body>
+</html>

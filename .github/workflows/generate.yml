@@ -58,7 +58,7 @@ jobs:
          run: npm i
 
        - name: Generate posts
-         run: clojure -X:generate
+         run: clojure -M:build
 
        - name: Run postcss
          run: npm run css

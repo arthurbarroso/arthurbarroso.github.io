@@ -38,13 +38,13 @@
    [:meta {:property "og:image"
            :content "https://www.arthurbrrs.me/img/collage/publicint.png"}]])
 
-(defn post-content [{:keys [date content tags description uri title translation] :as args}]
+(defn post-content [{:keys [date html tags description uri title translation] :as args}]
   {:tags (build-post-tags args)
    :content (build-post-content
              {:translation translation
               :date date
               :title title
-              :content content})})
+              :content html})})
 
 (defn build-post [post]
   (-> {:description (:description post)
