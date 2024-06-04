@@ -1,7 +1,7 @@
 {:title "collage"
  :layout :page
- :page-index 1
- :navbar? true}
+ :page-index 4
+ :navbar? false}
 
 Some of the digital collage stuff I still have. May be able to find some more of my old stuff someday. Also plan on updating this page with new ones.
 
